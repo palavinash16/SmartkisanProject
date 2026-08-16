@@ -1,0 +1,43 @@
+# ---------------------------------------------------------------- secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# ---------------------------------------------------------------- python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
+.hypothesis/
+
+# ---------------------------------------------------------------- node
+node_modules/
+dist/
+.vite/
+*.log
+
+# ---------------------------------------------------------------- ml
+mlruns/
+*.onnx
+*.tflite
+*.pt
+*.pkl
+ml/data/raw/
+ml/data/processed/
+
+# ---------------------------------------------------------------- os / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+.claude/settings.local.json

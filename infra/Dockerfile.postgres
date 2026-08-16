@@ -1,0 +1,14 @@
+# PostgreSQL 16 with BOTH spatial and vector support.
+#
+# We need PostGIS (farm locations, "mandis within N km") and pgvector (Phase 5
+# scheme RAG) in the same database. No official image ships both:
+#   - postgis/postgis:16-3.4  → PostGIS, no pgvector
+#   - pgvector/pgvector:pg16  → pgvector, no PostGIS
+#
+# So we take the PostGIS image and add pgvector from the PGDG apt repo that the
+# upstream postgres image already trusts.
+FROM postgis/postgis:16-3.4
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends postgresql-16-pgvector \
+    && rm -rf /var/lib/apt/lists/*

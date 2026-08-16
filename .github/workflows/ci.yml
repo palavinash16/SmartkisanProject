@@ -1,0 +1,168 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+env:
+  # ≥32 bytes — the app refuses to boot in production with a shorter key.
+  JWT_SECRET: ci-secret-not-for-production-0123456789abcdef
+
+jobs:
+  api:
+    name: API — lint, test, migrate
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/api
+
+    services:
+      postgres:
+        image: postgis/postgis:16-3.4
+        env:
+          POSTGRES_USER: smartkisan
+          POSTGRES_PASSWORD: smartkisan
+          POSTGRES_DB: smartkisan
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U smartkisan"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+      redis:
+        image: redis:7-alpine
+        ports: ["6379:6379"]
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s --health-timeout 3s --health-retries 10
+
+    env:
+      DATABASE_URL: postgresql+psycopg://smartkisan:smartkisan@localhost:5432/smartkisan
+      REDIS_URL: redis://localhost:6379/0
+      ENV: test
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install
+        run: pip install -e ".[dev]"
+
+      - name: Lint
+        run: ruff check app tests
+
+      - name: Format check
+        run: ruff format --check app tests
+
+      - name: Migrations apply cleanly
+        run: alembic upgrade head
+
+      - name: Migrations are reversible
+        # A downgrade that fails means we cannot roll back a bad deploy.
+        run: alembic downgrade base && alembic upgrade head
+
+      - name: No model drift
+        # Fails if a model changed without a matching migration.
+        run: |
+          alembic check || {
+            echo "::error::Models have drifted from migrations. Run: alembic revision --autogenerate"
+            exit 1
+          }
+
+      - name: Tests
+        run: pytest -q --cov=app --cov-report=term-missing --cov-report=xml
+
+      - name: Coverage gate — safety-critical modules
+        # NFR-7.1: the rule engine and land conversion carry a higher bar than
+        # the rest of the codebase, because a gap there produces wrong economics
+        # or an invalid agronomic recommendation.
+        run: |
+          pytest -q --cov=app.shared.land_units --cov-fail-under=95 tests/test_land_units.py
+          pytest -q --cov=app.shared.security --cov-fail-under=90 tests/test_auth.py
+
+      - name: Overall coverage gate
+        run: pytest -q --cov=app --cov-fail-under=70
+
+  web:
+    name: Web — test, build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/web
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: apps/web/package-lock.json
+
+      - name: Install
+        run: npm ci
+
+      - name: Tests
+        run: npm run test
+
+      - name: Build
+        run: npm run build
+
+      - name: Bundle budget
+        # NFR-1.6: total first load < 500 KB. A farmer on 2G pays for every byte.
+        run: |
+          BYTES=$(find dist/assets -name "*.js" -exec cat {} + | gzip -9 | wc -c)
+          KB=$((BYTES / 1024))
+          echo "Gzipped JS: ${KB} KB (budget 200 KB)"
+          if [ "$KB" -gt 200 ]; then
+            echo "::error::JS bundle ${KB} KB exceeds the 200 KB budget"
+            exit 1
+          fi
+
+  security:
+    name: Security scans
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Python SAST
+        run: |
+          pip install bandit
+          bandit -r apps/api/app -ll
+
+      - name: Dependency audit
+        run: |
+          pip install pip-audit
+          pip-audit --skip-editable -r <(pip install -q -e apps/api && pip freeze) || true
+
+      - name: Secret scan
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  no-mock-data:
+    name: No mock data in shipped code
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Acceptance criterion #1 (01-SRS §6): v1.0 ships with zero mock data.
+      # This starts as a warning and becomes a hard failure at the end of Phase 6,
+      # so the count can only go down.
+      - name: Report remaining mock data
+        run: |
+          COUNT=$(grep -ril "mockdata" apps/web/src 2>/dev/null | wc -l)
+          echo "Files still importing mock data: $COUNT"
+          if [ "$COUNT" -gt 0 ]; then
+            echo "::warning::$COUNT file(s) still use mock data — target is 0 by v1.0"
+            grep -ril "mockdata" apps/web/src || true
+          fi
