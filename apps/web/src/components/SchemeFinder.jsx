@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { SCHEMES_DATABASE } from '../data/mockData';
-import { FileText, Search, ShieldCheck, ExternalLink, CheckCircle, AlertCircle, Sparkles } from 'lucide-react';
+import { FileText, Search, ShieldCheck, ExternalLink, CheckCircle, AlertCircle, Sparkles, Award } from 'lucide-react';
 
 export default function SchemeFinder() {
   const [selectedState, setSelectedState] = useState('All');
-  const [landHolding, setLandHolding] = useState('SMALL'); // SMALL, MARGINAL, LARGE
+  const [landHolding, setLandHolding] = useState('SMALL');
   const [farmerCategory, setFarmerCategory] = useState('General');
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -17,15 +17,18 @@ export default function SchemeFinder() {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
       
       {/* Module Header */}
-      <div className="glass-panel" style={{ padding: '1.5rem 2rem', background: 'linear-gradient(135deg, rgba(14,34,22,0.9) 0%, rgba(6,20,13,0.9) 100%)' }}>
+      <div className="glass-panel" style={{ padding: '1.5rem 2rem', background: 'linear-gradient(135deg, rgba(14,34,22,0.95) 0%, rgba(6,20,13,0.95) 100%)', border: '1px solid var(--border-glow)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-          <div style={{ background: 'rgba(139, 92, 246, 0.2)', padding: '0.5rem', borderRadius: '10px', color: '#c084fc' }}>
-            <FileText size={24} />
+          <div style={{ background: 'rgba(139, 92, 246, 0.2)', padding: '0.65rem', borderRadius: '14px', color: '#c084fc', boxShadow: '0 0 15px rgba(139, 92, 246, 0.3)' }}>
+            <Award size={28} />
           </div>
           <div>
-            <h2 style={{ fontSize: '1.5rem' }}>Module 4: Government Scheme Intelligence Engine</h2>
-            <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>
-              Hybrid Rule Engine + PGVector RAG system scanning 1,200+ central & state agricultural scheme documents.
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <h2 style={{ fontSize: '1.6rem', color: '#ffffff' }}>Kisan Yojana Mitra (Government Benefits Matchmaker)</h2>
+              <span className="badge badge-info" style={{ fontSize: '0.7rem' }}>किसान योजना मित्र</span>
+            </div>
+            <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>
+              Hybrid Rule Engine + Vector Search matching farmer criteria against 1,200+ central & state agricultural scheme documents.
             </p>
           </div>
         </div>
@@ -35,8 +38,8 @@ export default function SchemeFinder() {
         
         {/* Profile Filter Form */}
         <div className="glass-card">
-          <h3 style={{ fontSize: '1.1rem', marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <Search size={18} color="#c084fc" /> Farmer Eligibility Filters
+          <h3 style={{ fontSize: '1.15rem', marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.75rem' }}>
+            <Search size={18} color="#c084fc" /> Eligibility Search Criteria
           </h3>
 
           <div className="form-group">
@@ -44,7 +47,7 @@ export default function SchemeFinder() {
             <input 
               type="text" 
               className="form-input" 
-              placeholder="e.g. Subsidy, Insurance, KCC..." 
+              placeholder="e.g. PM-KISAN, Insurance, KCC..." 
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -79,19 +82,19 @@ export default function SchemeFinder() {
             </select>
           </div>
 
-          <div style={{ marginTop: '1rem', padding: '0.75rem', background: 'rgba(139, 92, 246, 0.1)', borderRadius: 'var(--radius-sm)', border: '1px border #c084fc', fontSize: '0.8rem', color: '#c084fc' }}>
+          <div style={{ marginTop: '1rem', padding: '0.75rem', background: 'rgba(139, 92, 246, 0.1)', borderRadius: 'var(--radius-sm)', border: '1px solid #c084fc', fontSize: '0.8rem', color: '#c084fc' }}>
             <Sparkles size={14} style={{ display: 'inline', marginRight: '4px' }} />
-            PGVector similarity threshold set to 0.85 cosine similarity.
+            PGVector document embedding similarity threshold set to 0.85.
           </div>
         </div>
 
         {/* Scheme List Output */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <h3 style={{ fontSize: '1.2rem' }}>
+            <h3 style={{ fontSize: '1.25rem' }}>
               Eligible Government Schemes ({filteredSchemes.length} Verified Documents)
             </h3>
-            <span className="badge badge-info">Rule Match Engine 100% Verified</span>
+            <span className="badge badge-info">Rule Match Engine Verified</span>
           </div>
 
           {filteredSchemes.map((scheme) => (
@@ -100,11 +103,11 @@ export default function SchemeFinder() {
               <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
                 <div>
                   <span className="badge badge-info" style={{ marginBottom: '0.35rem' }}>{scheme.category}</span>
-                  <h4 style={{ fontSize: '1.2rem', color: '#ffffff' }}>{scheme.title}</h4>
+                  <h4 style={{ fontSize: '1.25rem', color: '#ffffff' }}>{scheme.title}</h4>
                 </div>
                 <div style={{ textAlign: 'right' }}>
-                  <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>RAG Match Score</span>
-                  <div style={{ fontSize: '1.2rem', fontWeight: 800, color: '#c084fc', fontFamily: 'Outfit' }}>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>RAG Similarity Match</span>
+                  <div style={{ fontSize: '1.3rem', fontWeight: 800, color: '#c084fc', fontFamily: 'Outfit' }}>
                     {scheme.matchScore}%
                   </div>
                 </div>
@@ -112,12 +115,12 @@ export default function SchemeFinder() {
 
               {/* Scheme Benefit Banner */}
               <div style={{ background: 'rgba(139, 92, 246, 0.12)', padding: '0.85rem', borderRadius: 'var(--radius-sm)', border: '1px solid rgba(139, 92, 246, 0.25)', marginBottom: '1rem' }}>
-                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block', textTransform: 'uppercase' }}>Financial Benefit / Support:</span>
-                <strong style={{ fontSize: '1rem', color: '#ffffff' }}>{scheme.benefit}</strong>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block', textTransform: 'uppercase' }}>Direct Financial Support / Benefit:</span>
+                <strong style={{ fontSize: '1.05rem', color: '#ffffff' }}>{scheme.benefit}</strong>
               </div>
 
               {/* Eligibility & Documents Grid */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', fontSize: '0.85rem', marginBottom: '1rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', fontSize: '0.875rem', marginBottom: '1rem' }}>
                 <div>
                   <strong style={{ color: 'var(--primary)', display: 'block', marginBottom: '0.25rem' }}>Eligibility Criteria:</strong>
                   <p style={{ color: 'var(--text-muted)' }}>{scheme.eligibility}</p>
@@ -135,7 +138,7 @@ export default function SchemeFinder() {
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: '0.75rem', borderTop: '1px solid var(--border-color)' }}>
                 <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Jurisdiction: <strong>{scheme.state}</strong></span>
                 <a href={scheme.link} target="_blank" rel="noopener noreferrer" className="btn btn-outline" style={{ fontSize: '0.8rem', padding: '0.4rem 0.85rem' }}>
-                  <span>Official Application Portal</span>
+                  <span>Official Portal Registration</span>
                   <ExternalLink size={14} />
                 </a>
               </div>

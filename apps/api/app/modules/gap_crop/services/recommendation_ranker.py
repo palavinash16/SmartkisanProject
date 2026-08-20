@@ -38,6 +38,11 @@ def rank_and_score_candidate_crops(
     for crop in candidates:
         crop_name = crop.get("crop_name", crop.get("name", ""))
 
+        # Filter out non-gap candidates (e.g. main crops like Paddy, Sugarcane)
+        if crop.get("is_gap_candidate") is False:
+            rejected_summary.append({"crop_name": crop_name, "reason": "Excluded: Non-gap crop candidate (Main Crop / Long duration)"})
+            continue
+
         # 1. Duration filter
         dur_eligible, dur_status, dur_score = evaluate_duration_eligibility(crop, gap_days)
         if not dur_eligible:
@@ -53,8 +58,8 @@ def rank_and_score_candidate_crops(
         # 3. Rotation compatibility
         comp_status, comp_notes, comp_score = evaluate_crop_compatibility(previous_crop, crop_name)
 
-        # 4. Regional calendar suitability
-        reg_status, reg_notes, reg_score = evaluate_regional_suitability(
+        # 4. Regional calendar suitability & Location Precedence
+        reg_status, reg_notes, reg_score, loc_meta = evaluate_regional_suitability(
             crop_name, state_name, district_name, harvest_month
         )
 
@@ -83,6 +88,8 @@ def rank_and_score_candidate_crops(
         max_prof = crop.get("net_profit_per_acre_max", 25000)
         projected_profit_total = int(max_prof * area_acres)
 
+        source_provenance = loc_meta.get("source_provenance", "Demo/seed data — requires source verification")
+
         evaluated_crops.append({
             "rank": 0,  # assigned after sort
             "crop_code": crop.get("code", crop_name.lower().replace(" ", "_")),
@@ -107,9 +114,11 @@ def rank_and_score_candidate_crops(
                 "nutrient_rotation_benefit": nutr_score,
                 "total": total_score,
             },
+            "location_resolution_level": loc_meta.get("resolution_level", "State Official Data"),
+            "agro_climatic_zone": loc_meta.get("zone"),
             "reasons": reasons,
             "warnings": warnings,
-            "source_provenance": "Demo/seed data — requires source verification",
+            "source_provenance": source_provenance,
         })
 
     # Sort descending by score

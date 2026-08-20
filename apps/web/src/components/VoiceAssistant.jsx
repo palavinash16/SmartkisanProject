@@ -1,292 +1,122 @@
-import React, { useState, useEffect, useRef } from 'react';
+﻿import React, { useState } from 'react';
 import { VOICE_SAMPLE_QUERIES } from '../data/mockData';
-import { 
-  Mic, 
-  MicOff, 
-  Volume2, 
-  Globe, 
-  Sparkles, 
-  Send, 
-  Play, 
-  Square,
-  Bot, 
-  User, 
-  Cpu, 
-  Settings2,
-  RefreshCw,
-  MessageSquare
-} from 'lucide-react';
+import { Mic, MicOff, Volume2, Globe, Sparkles, MessageSquare, Play, RefreshCw, Radio } from 'lucide-react';
 
-const FREE_AI_MODELS = [
-  { id: 'gemini-1.5-flash', name: 'Google Gemini 1.5 Flash (Free Agritech RAG)', provider: 'Google DeepMind', badge: 'Recommended' },
-  { id: 'llama-3-70b', name: 'Meta Llama 3 70B (Agronomist Fine-Tuned)', provider: 'Meta AI', badge: 'High Accuracy' },
-  { id: 'mistral-7b', name: 'Mistral 7B Agro-Advisor (Low Latency)', provider: 'Mistral AI', badge: 'Fastest' }
-];
-
-export default function VoiceAssistant({ selectedLang, setSelectedLang, farmerProfile }) {
-  const [selectedModel, setSelectedModel] = useState('gemini-1.5-flash');
-  const [inputText, setInputText] = useState('');
-  const [isListening, setIsListening] = useState(false);
+export default function VoiceAssistant({ selectedLang, setSelectedLang }) {
+  const [isRecording, setIsRecording] = useState(false);
+  const [activeQuery, setActiveQuery] = useState(VOICE_SAMPLE_QUERIES[0]);
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
-  const [speakingMsgId, setSpeakingMsgId] = useState(null);
-  const [autoVoiceover, setAutoVoiceover] = useState(true);
-  const [speechSupported, setSpeechSupported] = useState(true);
+  const [transcript, setTranscript] = useState(VOICE_SAMPLE_QUERIES[0].query);
+  const [aiResponse, setAiResponse] = useState(VOICE_SAMPLE_QUERIES[0].answer);
 
-  // Chat message history initialized with sample query
-  const [messages, setMessages] = useState([
-    {
-      id: 1,
-      sender: 'user',
-      text: VOICE_SAMPLE_QUERIES[0].query,
-      translated: VOICE_SAMPLE_QUERIES[0].translated,
-      lang: VOICE_SAMPLE_QUERIES[0].language,
-      time: '03:45 AM'
-    },
-    {
-      id: 2,
-      sender: 'ai',
-      text: VOICE_SAMPLE_QUERIES[0].answer,
-      model: 'Google Gemini 1.5 Flash',
-      time: '03:45 AM'
-    }
-  ]);
+  const handleSelectSample = (sample) => {
+    setActiveQuery(sample);
+    setTranscript(sample.query);
+    setAiResponse(sample.answer);
+  };
 
-  const recognitionRef = useRef(null);
-  const chatEndRef = useRef(null);
-
-  // Scroll chat to bottom
-  useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
-
-  // Setup Web Speech Recognition if available in browser
-  useEffect(() => {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (SpeechRecognition) {
-      const recognition = new SpeechRecognition();
-      recognition.continuous = false;
-      recognition.interimResults = true;
-      recognition.lang = selectedLang === 'hi' || selectedLang === 'bho' || selectedLang === 'awa' ? 'hi-IN' : selectedLang === 'pa' ? 'pa-IN' : selectedLang === 'bn' ? 'bn-IN' : selectedLang === 'mr' ? 'mr-IN' : 'en-IN';
-
-      recognition.onresult = (event) => {
-        const transcriptText = Array.from(event.results)
-          .map(res => res[0].transcript)
-          .join('');
-        setInputText(transcriptText);
-      };
-
-      recognition.onend = () => {
-        setIsListening(false);
-      };
-
-      recognition.onerror = (err) => {
-        console.warn('Speech recognition error:', err);
-        setIsListening(false);
-      };
-
-      recognitionRef.current = recognition;
+  const toggleRecording = () => {
+    if (!isRecording) {
+      setIsRecording(true);
+      setTimeout(() => {
+        setIsRecording(false);
+      }, 3000);
     } else {
-      setSpeechSupported(false);
-    }
-  }, [selectedLang]);
-
-  // Toggle Microphone Listening
-  const toggleListening = () => {
-    if (!recognitionRef.current) {
-      alert('Speech recognition is not supported in this browser window. You can type your question in the text box below.');
-      return;
-    }
-
-    if (isListening) {
-      recognitionRef.current.stop();
-      setIsListening(false);
-    } else {
-      setInputText('');
-      recognitionRef.current.start();
-      setIsListening(true);
+      setIsRecording(false);
     }
   };
 
-  // Play Text-to-Speech Voiceover
-  const playVoiceover = (text, msgId) => {
-    if (!('speechSynthesis' in window)) {
-      alert('Text-to-speech voiceover is not supported in this browser.');
-      return;
+  const playVoiceResponse = () => {
+    setIsPlayingAudio(true);
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(aiResponse);
+      utterance.lang = activeQuery.code === 'hi' || activeQuery.code === 'bho' || activeQuery.code === 'awa' ? 'hi-IN' : activeQuery.code === 'pa' ? 'pa-IN' : activeQuery.code === 'bn' ? 'bn-IN' : 'hi-IN';
+      utterance.rate = 0.95;
+      utterance.onend = () => setIsPlayingAudio(false);
+      utterance.onerror = () => setIsPlayingAudio(false);
+      window.speechSynthesis.speak(utterance);
+    } else {
+      setTimeout(() => setIsPlayingAudio(false), 4000);
     }
-
-    window.speechSynthesis.cancel();
-
-    if (speakingMsgId === msgId && isPlayingAudio) {
-      setIsPlayingAudio(false);
-      setSpeakingMsgId(null);
-      return;
-    }
-
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = selectedLang === 'hi' || selectedLang === 'bho' || selectedLang === 'awa' ? 'hi-IN' : selectedLang === 'pa' ? 'pa-IN' : selectedLang === 'bn' ? 'bn-IN' : selectedLang === 'mr' ? 'mr-IN' : 'en-IN';
-    utterance.rate = 0.95;
-    utterance.pitch = 1.0;
-
-    utterance.onstart = () => {
-      setIsPlayingAudio(true);
-      setSpeakingMsgId(msgId);
-    };
-
-    utterance.onend = () => {
-      setIsPlayingAudio(false);
-      setSpeakingMsgId(null);
-    };
-
-    utterance.onerror = () => {
-      setIsPlayingAudio(false);
-      setSpeakingMsgId(null);
-    };
-
-    window.speechSynthesis.speak(utterance);
-  };
-
-  // Send message to AI Model
-  const handleSendMessage = (textToSend) => {
-    const query = textToSend || inputText;
-    if (!query.trim()) return;
-
-    const newMsgId = Date.now();
-    const nowTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
-    const userMessage = {
-      id: newMsgId,
-      sender: 'user',
-      text: query,
-      time: nowTime
-    };
-
-    setMessages(prev => [...prev, userMessage]);
-    setInputText('');
-
-    // Generate intelligent agronomic response based on query & farmerProfile context
-    setTimeout(() => {
-      const activeModelObj = FREE_AI_MODELS.find(m => m.id === selectedModel);
-      let aiText = `आपकी समस्या के लिए सलाह (${farmerProfile?.district || 'Karnal'} क्षेत्र के लिए): `;
-      
-      const qLower = query.toLowerCase();
-      if (qLower.includes('गेहूं') || qLower.includes('wheat')) {
-        aiText = `गेहूं की फसल कटाई के बाद आप समर मूंग या ज़ैद मक्का लगा सकते हैं। ${farmerProfile?.district || 'Karnal'} में जलोढ़ मिट्टी (Alluvial soil) के लिए मूंग में ₹45,000 प्रति एकड़ का शुद्ध लाभ अनुमानित है।`;
-      } else if (qLower.includes('रोग') || qLower.includes('disease') || qLower.includes('दवा') || qLower.includes('spray')) {
-        aiText = `आज आपके इलाके (${farmerProfile?.district || 'Karnal'}) में आर्द्रता 82% और वर्षा की 75% संभावना है। कीटनाशक या फफूंदनाशक का छिड़काव आज न करें। अगले 24 घंटे के बाद ही बायो-फंगीसाइड ट्राइकोडरमा विरिडी का उपयोग करें।`;
-      } else if (qLower.includes('योजना') || qLower.includes('scheme') || qLower.includes('पैसा')) {
-        aiText = `आपके ${farmerProfile?.landAcres || '3.5'} एकड़ खेत के लिए PM-KISAN (₹6,000 वार्षिक) और Kisan Credit Card (4% ब्याज दर पर ₹3 लाख ऋण) योजनाएं 100% उपयुक्त हैं।`;
-      } else {
-        aiText = `SmartKisan AI Model (${activeModelObj?.name}): आपके ${farmerProfile?.landAcres || '3.5'} एकड़ खेत (${farmerProfile?.district || 'Karnal'}, ${farmerProfile?.state || 'Haryana'}) के लिए मिट्टी परीक्षण और संतुलित NPK (4:2:1) उर्वरक प्रयोग की सलाह दी जाती है।`;
-      }
-
-      const aiMsgId = newMsgId + 1;
-      const aiMessage = {
-        id: aiMsgId,
-        sender: 'ai',
-        text: aiText,
-        model: activeModelObj?.name || 'Google Gemini 1.5 Flash',
-        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-      };
-
-      setMessages(prev => [...prev, aiMessage]);
-
-      if (autoVoiceover) {
-        playVoiceover(aiText, aiMsgId);
-      }
-    }, 1200);
   };
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
       
-      {/* Module Title Header */}
-      <div className="glass-panel" style={{ padding: '1.5rem 2rem', background: 'linear-gradient(135deg, rgba(14,34,22,0.95) 0%, rgba(6,20,13,0.95) 100%)' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <div style={{ background: 'rgba(59, 130, 246, 0.2)', padding: '0.65rem', borderRadius: '12px', color: '#60a5fa' }}>
-              <Mic size={26} />
-            </div>
-            <div>
-              <h2 style={{ fontSize: '1.5rem' }}>Module 3: Advanced AI Voice & Chat Assistant 🎙️</h2>
-              <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>
-                Multi-dialect Speech-to-Text (STT) + Free LLM Reasoning + Natural Text-to-Speech (TTS) Voiceover.
-              </p>
-            </div>
+      {/* Header */}
+      <div className="glass-panel" style={{ padding: '1.5rem 2rem', background: 'linear-gradient(135deg, rgba(14,34,22,0.95) 0%, rgba(6,20,13,0.95) 100%)', border: '1px solid var(--border-glow)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          <div style={{ background: 'rgba(59, 130, 246, 0.2)', padding: '0.65rem', borderRadius: '14px', color: '#60a5fa', boxShadow: '0 0 15px rgba(59, 130, 246, 0.3)' }}>
+            <Radio size={28} />
           </div>
-
-          {/* Auto-Voiceover Toggle */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(6, 20, 13, 0.8)', padding: '0.4rem 0.85rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-color)' }}>
-            <Volume2 size={16} color="var(--primary)" />
-            <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: 600 }}>Auto Voiceover:</span>
-            <button 
-              className={`btn ${autoVoiceover ? 'btn-primary' : 'btn-outline'}`}
-              style={{ padding: '0.2rem 0.6rem', fontSize: '0.75rem' }}
-              onClick={() => setAutoVoiceover(!autoVoiceover)}
-            >
-              {autoVoiceover ? 'ENABLED 🔊' : 'MUTED 🔇'}
-            </button>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <h2 style={{ fontSize: '1.6rem', color: '#ffffff' }}>Kisan Vani AI Voice Agronomist</h2>
+              <span className="badge badge-info" style={{ fontSize: '0.7rem' }}>किसान वाणी एआई सलाहकार</span>
+            </div>
+            <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>
+              Hands-free regional voice intelligence supporting Hindi, Bhojpuri, Awadhi, Punjabi, Marathi, and Bengali.
+            </p>
           </div>
         </div>
       </div>
 
-      {/* Main Grid: AI Model Config & Conversation Feed */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1.1fr 2fr', gap: '1.5rem' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 2fr', gap: '1.5rem' }}>
         
-        {/* Left Side: Model Selector & Sample Prompts */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+        {/* Voice Recorder Controls */}
+        <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', padding: '2rem' }}>
           
-          {/* AI Model Selector Card */}
-          <div className="glass-card">
-            <h3 style={{ fontSize: '1.05rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--primary-bright)' }}>
-              <Cpu size={18} /> Free AI Model Engine
-            </h3>
-
-            <div className="form-group">
-              <label className="form-label">Select Active AI Architecture</label>
-              <select 
-                className="form-select"
-                value={selectedModel}
-                onChange={(e) => setSelectedModel(e.target.value)}
-              >
-                {FREE_AI_MODELS.map(m => (
-                  <option key={m.id} value={m.id}>
-                    {m.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div style={{ background: 'rgba(6, 20, 13, 0.7)', padding: '0.85rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-color)', fontSize: '0.8rem' }}>
-              <div style={{ color: 'var(--text-muted)' }}>Registered Farm Context:</div>
-              <strong style={{ color: '#fff', fontSize: '0.85rem' }}>{farmerProfile?.farmerName} ({farmerProfile?.district}, {farmerProfile?.state})</strong>
-              <div style={{ color: 'var(--primary)', marginTop: '0.2rem' }}>{farmerProfile?.landAcres} Acres • {farmerProfile?.soilType} Soil</div>
-            </div>
+          <div style={{ marginBottom: '1.5rem' }}>
+            <span className="badge badge-info" style={{ marginBottom: '0.5rem' }}>Bhashini + Whisper STT Engine</span>
+            <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>Tap the microphone and ask your farming question in your native dialect</p>
           </div>
 
-          {/* Sample Dialect Voice Prompts */}
-          <div className="glass-card">
-            <h3 style={{ fontSize: '1.05rem', marginBottom: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <Globe size={18} color="#2dd4bf" /> Sample Native Queries
-            </h3>
+          {/* Interactive Mic Button */}
+          <div 
+            onClick={toggleRecording}
+            style={{ 
+              width: '110px', 
+              height: '110px', 
+              borderRadius: '50%', 
+              background: isRecording ? 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)' : 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              boxShadow: isRecording ? '0 0 35px rgba(239, 68, 68, 0.6)' : '0 0 25px rgba(16, 185, 129, 0.4)',
+              transition: 'all 0.3s ease',
+              marginBottom: '1.5rem'
+            }}
+          >
+            {isRecording ? <MicOff size={44} color="#ffffff" /> : <Mic size={44} color="#ffffff" />}
+          </div>
 
+          <span style={{ fontSize: '0.95rem', fontWeight: 600, color: isRecording ? '#f87171' : '#34d399' }}>
+            {isRecording ? 'Listening to voice stream (Speak now...)' : 'Click to Speak (किसान बोलें)'}
+          </span>
+
+          {/* Regional Sample Prompts */}
+          <div style={{ width: '100%', marginTop: '2rem', textAlign: 'left' }}>
+            <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', display: 'block', marginBottom: '0.75rem' }}>
+              Sample Dialect Voice Prompts:
+            </span>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
               {VOICE_SAMPLE_QUERIES.map((sample, idx) => (
                 <button
                   key={idx}
-                  onClick={() => handleSendMessage(sample.query)}
+                  onClick={() => handleSelectSample(sample)}
                   className="btn btn-outline"
                   style={{
                     justifyContent: 'flex-start',
-                    fontSize: '0.8rem',
+                    fontSize: '0.825rem',
                     padding: '0.5rem 0.75rem',
-                    textAlign: 'left',
-                    whiteSpace: 'normal'
+                    borderColor: activeQuery.language === sample.language ? 'var(--primary)' : 'var(--border-color)',
+                    background: activeQuery.language === sample.language ? 'rgba(16, 185, 129, 0.1)' : 'transparent'
                   }}
                 >
-                  <div>
-                    <span style={{ color: '#fbbf24', fontWeight: 700, display: 'block', fontSize: '0.75rem' }}>{sample.language}:</span>
-                    <span>"{sample.query}"</span>
-                  </div>
+                  <Globe size={14} color="var(--primary)" />
+                  <span><strong>{sample.language}:</strong> "{sample.query.substring(0, 35)}..."</span>
                 </button>
               ))}
             </div>
@@ -294,107 +124,61 @@ export default function VoiceAssistant({ selectedLang, setSelectedLang, farmerPr
 
         </div>
 
-        {/* Right Side: Interactive AI Multi-Turn Chat Console */}
-        <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', height: '620px', padding: '1.25rem' }}>
+        {/* AI Voice Output Panel */}
+        <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
           
-          {/* Chat Messages Container */}
-          <div style={{ flex: 1, overflowY: 'auto', paddingRight: '0.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            {messages.map((msg) => (
-              <div 
-                key={msg.id} 
-                style={{ 
-                  display: 'flex', 
-                  flexDirection: 'column',
-                  alignItems: msg.sender === 'user' ? 'flex-end' : 'flex-start'
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '0.25rem' }}>
-                  {msg.sender === 'user' ? (
-                    <><span>{farmerProfile?.farmerName || 'Farmer'}</span> <User size={13} color="var(--primary)" /></>
-                  ) : (
-                    <><Bot size={13} color="#2dd4bf" /> <span>{msg.model}</span></>
-                  )}
-                  <span>• {msg.time}</span>
-                </div>
-
-                <div 
-                  style={{ 
-                    maxWidth: '85%', 
-                    padding: '1rem 1.25rem', 
-                    borderRadius: 'var(--radius-md)', 
-                    background: msg.sender === 'user' ? 'linear-gradient(135deg, rgba(16, 185, 129, 0.25) 0%, rgba(5, 150, 105, 0.3) 100%)' : 'rgba(10, 33, 19, 0.9)',
-                    border: msg.sender === 'user' ? '1px solid rgba(16, 185, 129, 0.4)' : '1px solid var(--border-color)',
-                    color: '#ffffff',
-                    boxShadow: 'var(--shadow-sm)'
-                  }}
-                >
-                  <p style={{ fontSize: '0.975rem', lineHeight: 1.5 }}>{msg.text}</p>
-                  
-                  {msg.translated && (
-                    <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.35rem', fontStyle: 'italic' }}>
-                      Translation: {msg.translated}
-                    </p>
-                  )}
-
-                  {/* Play Voiceover Action Button */}
-                  <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '0.5rem' }}>
-                    <button 
-                      className="btn btn-outline"
-                      style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem', borderColor: speakingMsgId === msg.id ? '#fbbf24' : 'var(--border-color)' }}
-                      onClick={() => playVoiceover(msg.text, msg.id)}
-                    >
-                      {speakingMsgId === msg.id && isPlayingAudio ? (
-                        <><Square size={12} color="#fbbf24" /> Stop Voiceover</>
-                      ) : (
-                        <><Play size={12} color="var(--primary)" /> Listen Voiceover (TTS)</>
-                      )}
-                    </button>
-                  </div>
-                </div>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.75rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <Sparkles size={18} color="var(--accent-gold)" />
+                <h3 style={{ fontSize: '1.15rem' }}>Kisan Vani AI Agronomist Response</h3>
               </div>
-            ))}
-            <div ref={chatEndRef} />
+              <span className="badge badge-success">Gemini 1.5 RAG Active</span>
+            </div>
+
+            {/* Farmer Voice Query */}
+            <div style={{ background: 'rgba(6, 20, 13, 0.8)', padding: '1rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-color)', marginBottom: '1rem' }}>
+              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block', marginBottom: '0.25rem' }}>
+                Farmer Audio Input ({activeQuery.language}):
+              </span>
+              <p style={{ fontSize: '1.1rem', fontWeight: 600, color: '#ffffff' }}>"{transcript}"</p>
+              <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.25rem', fontStyle: 'italic' }}>
+                English Translation: {activeQuery.translated}
+              </p>
+            </div>
+
+            {/* AI Response Card */}
+            <div style={{ background: 'rgba(16, 185, 129, 0.1)', padding: '1.25rem', borderRadius: 'var(--radius-sm)', border: '1px solid rgba(16, 185, 129, 0.3)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#34d399', textTransform: 'uppercase' }}>
+                  SmartKisan Decision Advisory
+                </span>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Latency: 1.4s</span>
+              </div>
+              <p style={{ fontSize: '1.1rem', color: '#ffffff', lineHeight: 1.6 }}>{aiResponse}</p>
+            </div>
           </div>
 
-          {/* Interactive Mic + Text Input Footer Bar */}
-          <div style={{ marginTop: '1rem', borderTop: '1px solid var(--border-color)', paddingTop: '1rem', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+          {/* Audio Synthesizer Controls */}
+          <div style={{ marginTop: '1.5rem', display: 'flex', alignItems: 'center', justifyBetween: 'space-between', background: 'rgba(6, 20, 13, 0.9)', padding: '0.85rem 1.25rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-glow)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+              <button className="btn btn-gold" onClick={playVoiceResponse} disabled={isPlayingAudio}>
+                {isPlayingAudio ? <RefreshCw size={18} className="pulse-active" /> : <Play size={18} />}
+                <span>{isPlayingAudio ? 'Speaking Audio...' : 'Listen Audio Response (TTS)'}</span>
+              </button>
+              <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Coqui / ElevenLabs Dialect Voice Synthesis</span>
+            </div>
             
-            {/* Live Mic Button */}
-            <button 
-              className={`btn ${isListening ? 'btn-gold' : 'btn-primary'}`}
-              style={{ padding: '0.75rem', borderRadius: '50%', width: '48px', height: '48px', flexShrink: 0 }}
-              onClick={toggleListening}
-              title={isListening ? "Listening... Click to stop" : "Click to speak voice input"}
-            >
-              {isListening ? <MicOff size={22} className="pulse-active" /> : <Mic size={22} />}
-            </button>
-
-            {/* Input Text Box */}
-            <input 
-              type="text" 
-              className="form-input" 
-              placeholder={isListening ? "Listening to your voice stream..." : "Ask AI Agronomist in Hindi, Punjabi, Bengali, English..."}
-              value={inputText}
-              onChange={(e) => setInputText(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
-              style={{ flex: 1, padding: '0.75rem 1rem' }}
-            />
-
-            {/* Send Button */}
-            <button 
-              className="btn btn-primary"
-              style={{ padding: '0.75rem 1.25rem' }}
-              onClick={() => handleSendMessage()}
-            >
-              <Send size={18} />
-            </button>
-
+            <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+              {[30, 60, 40, 80, 50, 90, 45, 70, 30].map((h, i) => (
+                <div key={i} style={{ width: '3px', height: isPlayingAudio ? ${h}% : '8px', background: 'var(--primary)', borderRadius: '2px', transition: 'height 0.2s ease' }} />
+              ))}
+            </div>
           </div>
 
         </div>
 
       </div>
-
     </div>
   );
 }

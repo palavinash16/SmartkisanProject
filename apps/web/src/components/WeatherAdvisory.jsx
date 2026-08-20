@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { CloudSun, MapPin, Wind, Droplets, Thermometer, AlertTriangle, CheckCircle2, Navigation } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
 
 export default function WeatherAdvisory({ farmerProfile }) {
+  const { t } = useLanguage();
   const [lat, setLat] = useState(28.66);
   const [lon, setLon] = useState(77.43);
   const [gpsDetected, setGpsDetected] = useState(false);
@@ -64,7 +66,7 @@ export default function WeatherAdvisory({ farmerProfile }) {
 
   const fallbackForecast = () => {
     setWeatherData({
-      location: `${farmerProfile?.district || 'गाज़ियाबाद'}, UP (${lat.toFixed(2)}, ${lon.toFixed(2)})`,
+      location: `${farmerProfile?.district || 'Ghaziabad'}, UP (${lat.toFixed(2)}, ${lon.toFixed(2)})`,
       forecast_7d: [
         { day: 'Today', date: '2026-08-14', temp_max: 35.0, temp_min: 26.0, rain_mm: 22.0, humidity_pct: 65.0, wind_kmh: 11.0, condition: 'Light Rain' },
         { day: 'Day 2', date: '2026-08-15', temp_max: 34.0, temp_min: 25.5, rain_mm: 5.0, humidity_pct: 60.0, wind_kmh: 12.0, condition: 'Partly Cloudy' },
@@ -88,9 +90,9 @@ export default function WeatherAdvisory({ farmerProfile }) {
               <CloudSun size={26} />
             </div>
             <div>
-              <h2 style={{ fontSize: '1.5rem', color: '#0f172a' }}>Module 3 — Weather Advisory</h2>
+              <h2 style={{ fontSize: '1.5rem', color: '#0f172a' }}>{t('weather_title')}</h2>
               <p style={{ fontSize: '0.875rem', color: '#64748b', margin: 0 }}>
-                Answer: "Is weather suitable for sowing, irrigation or spraying?" Open-Meteo API integration.
+                Live Open-Meteo API integration with rule-based agricultural advisory.
               </p>
             </div>
           </div>
@@ -132,7 +134,7 @@ export default function WeatherAdvisory({ farmerProfile }) {
               <div style={{ fontSize: '1.6rem', fontWeight: 800, color: '#0284c7', fontFamily: 'Outfit' }}>
                 {advisoryData.rainfall_mm} mm
               </div>
-              <span style={{ fontSize: '0.75rem', color: '#64748b' }}>Humidity: {advisoryData.humidity_pct}%</span>
+              <span style={{ fontSize: '0.75rem', color: '#64748b' }}>{t('humidity')}: {advisoryData.humidity_pct}%</span>
             </div>
           </div>
 
@@ -141,11 +143,11 @@ export default function WeatherAdvisory({ farmerProfile }) {
               <Wind size={26} />
             </div>
             <div>
-              <span style={{ fontSize: '0.75rem', color: '#64748b' }}>Wind Speed</span>
+              <span style={{ fontSize: '0.75rem', color: '#64748b' }}>{t('wind')}</span>
               <div style={{ fontSize: '1.6rem', fontWeight: 800, color: '#16a34a', fontFamily: 'Outfit' }}>
                 {advisoryData.wind_kmh} km/h
               </div>
-              <span style={{ fontSize: '0.75rem', color: '#16a34a' }}>Safe for spraying</span>
+              <span style={{ fontSize: '0.75rem', color: '#16a34a' }}>{t('spray_guidance')}: Safe</span>
             </div>
           </div>
 
@@ -154,11 +156,11 @@ export default function WeatherAdvisory({ farmerProfile }) {
               <MapPin size={26} />
             </div>
             <div>
-              <span style={{ fontSize: '0.75rem', color: '#64748b' }}>Location</span>
+              <span style={{ fontSize: '0.75rem', color: '#64748b' }}>{t('active_location')}</span>
               <div style={{ fontSize: '1.1rem', fontWeight: 700, color: '#0f172a' }}>
-                मुरादनगर
+                {farmerProfile?.district || 'Ghaziabad'}
               </div>
-              <span style={{ fontSize: '0.75rem', color: '#64748b' }}>{farmerProfile?.district || 'गाज़ियाबाद'}, {farmerProfile?.state || 'उत्तर प्रदेश'}</span>
+              <span style={{ fontSize: '0.75rem', color: '#64748b' }}>{farmerProfile?.state || 'Uttar Pradesh'}</span>
             </div>
           </div>
 

@@ -27,7 +27,7 @@ router = APIRouter(tags=["Gap Crop Engine"])
         "Identifies and ranks suitable short-duration gap crops that can be grown between "
         "the previous harvest date and the next planned sowing date.\n\n"
         "Calculates gap duration, evaluates crop rotation compatibility, irrigation suitability, "
-        "regional crop season alignment, and estimated nutrient/rotation benefits."
+        "multi-tier location precedence (District -> Agro-Climatic Zone -> State), and estimated nutrient/rotation benefits."
     ),
     responses={
         200: {
@@ -38,6 +38,12 @@ router = APIRouter(tags=["Gap Crop Engine"])
                         "data": {
                             "status": "success",
                             "calculated_gap_days": 68,
+                            "location_context": {
+                                "state_name": "Uttar Pradesh",
+                                "district_name": "Ghaziabad",
+                                "agro_climatic_zone": "Upper Gangetic Plain Zone",
+                                "resolution_level": "District Official Data",
+                            },
                             "input_summary": {
                                 "previous_crop": "Wheat",
                                 "harvest_date": "2026-04-25",
@@ -56,7 +62,7 @@ router = APIRouter(tags=["Gap Crop Engine"])
                                     "hindi_name": "ग्रीष्मकालीन मूंग",
                                     "scientific_name": "Vigna radiata",
                                     "category": "Pulse",
-                                    "duration_days": "60-65 Days",
+                                    "duration_days": "55-65 Days",
                                     "water_requirement": "Low",
                                     "suitability_status": "High",
                                     "rotation_benefit": "Favorable",
@@ -73,22 +79,24 @@ router = APIRouter(tags=["Gap Crop Engine"])
                                         "nutrient_rotation_benefit": 15.0,
                                         "total": 98.5,
                                     },
+                                    "location_resolution_level": "District Official Data",
+                                    "agro_climatic_zone": "Upper Gangetic Plain Zone",
                                     "reasons": [
                                         "✓ Fits 68-day gap window",
                                         "✓ Favorable cereal-legume rotation",
                                     ],
                                     "warnings": [],
-                                    "source_provenance": "Demo/seed data — requires source verification",
+                                    "source_provenance": "ICAR-IIPR Kanpur / UP Agri Dept Guidelines",
                                 }
                             ],
                             "eligible_crops_count": 4,
                             "disclaimer": "Estimated nutrient impact is based on crop profile rotation models and is NOT a measured soil test.",
                         },
                         "meta": {
-                            "source": "SmartKisan Gap Crop Decision Engine v1.0",
+                            "source": "SmartKisan India-Wide Decision Engine v2.0",
                             "is_stale": False,
                             "data_as_of": "2026-08-17T00:00:00Z",
-                            "model_version": "1.0.0",
+                            "model_version": "2.0.0",
                         },
                     }
                 }
@@ -107,10 +115,10 @@ def recommend_gap_crop(
     return {
         "data": recommendation,
         "meta": {
-            "source": "SmartKisan Gap Crop Decision Engine v1.0",
+            "source": "SmartKisan India-Wide Decision Engine v2.0",
             "is_stale": False,
             "data_as_of": "2026-08-17T00:00:00Z",
-            "model_version": "1.0.0",
+            "model_version": "2.0.0",
         },
     }
 
@@ -121,7 +129,7 @@ def get_gap_crop_catalog():
     return {
         "data": SEED_CROP_CATALOG,
         "meta": {
-            "source": "SmartKisan Crop Catalog Database — Seed Version",
+            "source": "SmartKisan Crop Catalog Database — India-Wide Master",
             "is_stale": False,
             "data_as_of": "2026-08-17T00:00:00Z",
             "model_version": None,

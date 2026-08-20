@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { 
   Sprout, 
   Store, 
@@ -8,7 +8,10 @@ import {
   LayoutDashboard, 
   Globe, 
   ShieldCheck,
-  Sparkles
+  Mic,
+  FileText,
+  Scan,
+  TrendingUp
 } from 'lucide-react';
 
 const LANGUAGES = [
@@ -23,12 +26,15 @@ const LANGUAGES = [
 
 export default function Navbar({ activeTab, setActiveTab, selectedLang, setSelectedLang }) {
   const navItems = [
-    { id: 'my-field', label: 'My Field (Integration)', icon: MapPin },
-    { id: 'gap-crop', label: 'Module 1: Gap Engine', icon: Sprout },
-    { id: 'mandi-prices', label: 'Module 2: Mandi Intelligence', icon: Store },
-    { id: 'weather-advisory', label: 'Module 3: Weather Advisory', icon: CloudSun },
-    { id: 'crop-school', label: 'Module 4: Crop School', icon: BookOpen },
-    { id: 'dashboard', label: 'Overview', icon: LayoutDashboard },
+    { id: 'my-field', label: 'My Farm Hub', icon: MapPin },
+    { id: 'gap-crop', label: 'Inter-Season Rotation AI', icon: Sprout },
+    { id: 'profit-predictor', label: 'Harvest Revenue & Mandi', icon: TrendingUp },
+    { id: 'voice-assistant', label: 'Kisan Vani AI', icon: Mic },
+    { id: 'scheme-finder', label: 'Yojana Mitra (Schemes)', icon: FileText },
+    { id: 'weather-advisory', label: 'Micro-Climate Advisor', icon: CloudSun },
+    { id: 'disease-detector', label: 'Crop Health Sentinel', icon: Scan },
+    { id: 'crop-school', label: 'Agro Academy', icon: BookOpen },
+    { id: 'dashboard', label: 'Command Center', icon: LayoutDashboard },
   ];
 
   return (
@@ -54,10 +60,10 @@ export default function Navbar({ activeTab, setActiveTab, selectedLang, setSelec
               <span style={{ fontSize: '1.4rem', fontWeight: 800, fontFamily: 'Outfit', letterSpacing: '-0.03em', background: 'linear-gradient(135deg, #ffffff 0%, #34d399 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
                 SmartKisan
               </span>
-              <span className="badge badge-success" style={{ fontSize: '0.65rem' }}>Modular MVP v1.0</span>
+              <span className="badge badge-success" style={{ fontSize: '0.65rem' }}>Decision Intelligence v2.0</span>
             </div>
             <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', margin: 0 }}>
-              Farmer Agricultural Decision-Support System
+              Farmer Prosperity & Decision Intelligence Command Center
             </p>
           </div>
         </div>
@@ -71,7 +77,7 @@ export default function Navbar({ activeTab, setActiveTab, selectedLang, setSelec
               <button
                 key={item.id}
                 onClick={() => setActiveTab(item.id)}
-                className={`btn ${isActive ? 'btn-primary' : 'btn-outline'}`}
+                className={tn }
                 style={{
                   padding: '0.5rem 0.85rem',
                   fontSize: '0.85rem',
@@ -113,7 +119,7 @@ export default function Navbar({ activeTab, setActiveTab, selectedLang, setSelec
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.75rem', color: '#4ade80', background: 'rgba(34, 197, 94, 0.1)', padding: '0.35rem 0.65rem', borderRadius: 'var(--radius-full)', border: '1px solid rgba(34, 197, 94, 0.3)' }}>
             <ShieldCheck size={14} />
-            <span>Modules Online</span>
+            <span>AI Decision Active</span>
           </div>
         </div>
 

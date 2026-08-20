@@ -1,99 +1,113 @@
-import React, { useState } from 'react';
-import { Menu, Bell, MapPin, ChevronDown, Sprout, Globe, X } from 'lucide-react';
+﻿import React, { useState } from 'react';
+import { 
+  Sprout, 
+  Globe, 
+  Menu, 
+  MapPin, 
+  Bell, 
+  ChevronDown, 
+  X, 
+  ShieldCheck,
+  User,
+  Home,
+  Store,
+  BookOpen,
+  Sparkles,
+  TrendingUp,
+  Mic,
+  FileText
+} from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
+import { SUPPORTED_LANGUAGES } from '../utils/translations';
 
-export default function PWAHeader({ 
-  farmerProfile, 
-  activeTab, 
-  setActiveTab, 
-  selectedLang, 
-  setSelectedLang, 
-  onOpenProfile 
-}) {
+export default function PWAHeader({ farmerProfile, activeTab, setActiveTab, selectedLang, setSelectedLang, onOpenProfile }) {
   const [showDrawer, setShowDrawer] = useState(false);
   const [showNotificationModal, setShowNotificationModal] = useState(false);
+  const { lang, setLang } = useLanguage();
+
+  const handleLanguageChange = (code) => {
+    setSelectedLang(code);
+    setLang(code);
+  };
 
   const notifications = [
-    { title: 'हीट वेव अलर्ट', desc: 'अगले 2 दिनों तक तापमान अधिक रहेगा। सिंचाई बढ़ाएं।', time: '10 मिनट पहले', icon: '☀️' },
-    { title: 'सरकारी योजना 14वीं किस्‍त', desc: 'पीएम किसान सम्मान निधि की 14वीं किस्‍त आपके खाते में जमा हो गई है।', time: '2 घंटे पहले', icon: '📢' },
-    { title: 'मंडी भाव अपडेट', desc: 'हापुड़ एपीएमसी में मूंग के दाम में ₹250/क्विंटल की तेजी देखी गई।', time: 'आज सुबह 07:30', icon: '📈' }
+    { title: "मौसम चेतावनी: बारिश की संभावना", desc: "अगले 8 घंटे में 80% बारिश की संभावना। छिड़काव रोकें।", time: "10 मिनट पहले", icon: "⚠️" },
+    { title: "नवीनतम मंडी भाव अपडेट", desc: "कर्नाल मंडी में धान का भाव ₹2,183/क्विंटल पहुंचा।", time: "1 घंटे पहले", icon: "📈" },
+    { title: "पीएम-किसान किस्त अपडेट", desc: "17वीं किस्त जल्द खातों में भेजी जाएगी। ई-केवाईसी जांचें।", time: "3 घंटे पहले", icon: "📜" }
   ];
 
   return (
-    <header style={{
-      position: 'sticky',
-      top: 0,
-      zIndex: 1000,
-      background: '#ffffff',
-      borderBottom: '1px solid #e2e8f0',
-      boxShadow: '0 2px 10px rgba(0,0,0,0.04)'
-    }}>
-      {/* Primary Header Row */}
-      <div style={{
-        maxWidth: '1200px',
-        margin: '0 auto',
-        padding: '0.65rem 1rem',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        gap: '0.5rem'
-      }}>
+    <header style={{ position: 'sticky', top: 0, zIndex: 1000, background: '#0e2216', borderBottom: '1px solid rgba(34, 197, 94, 0.25)', boxShadow: '0 4px 20px rgba(0,0,0,0.4)' }}>
+      
+      {/* Top Main Row */}
+      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0.65rem 1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.75rem' }}>
         
-        {/* Left Side: Hamburger Menu & Logo */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+        {/* Left: Drawer Trigger + Brand Logo */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
           <button 
             onClick={() => setShowDrawer(true)}
-            style={{
-              background: 'transparent',
-              border: 'none',
-              color: '#0f172a',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              padding: '0.25rem'
-            }}
+            style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', width: '38px', height: '38px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ffffff', cursor: 'pointer' }}
           >
-            <Menu size={24} />
+            <Menu size={22} />
           </button>
 
-          <div 
-            onClick={() => setActiveTab('home')}
-            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}
-          >
-            <div style={{
-              width: '38px',
-              height: '38px',
-              borderRadius: '50%',
-              background: '#dcfce7',
-              border: '1px solid #bbf7d0',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}>
-              <Sprout size={22} color="#059669" />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }} onClick={() => setActiveTab('home')}>
+            <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 12px rgba(16, 185, 129, 0.4)' }}>
+              <Sprout size={22} color="#ffffff" />
             </div>
-
             <div>
-              <div style={{ fontSize: '1.25rem', fontWeight: 800, fontFamily: 'Outfit, sans-serif', color: '#059669', lineHeight: 1.1 }}>
+              <div style={{ fontSize: '1.25rem', fontWeight: 800, fontFamily: 'Outfit', color: '#ffffff', lineHeight: 1.1 }}>
                 SmartKisan
               </div>
-              <div style={{ fontSize: '0.65rem', color: '#16a34a', fontWeight: 700, letterSpacing: '-0.01em' }}>
-                स्मार्ट किसान, समृद्ध किसान
-              </div>
+              <span style={{ fontSize: '0.65rem', color: '#34d399', fontWeight: 600 }}>किसान समृद्धि एआई</span>
             </div>
           </div>
         </div>
 
-        {/* Right Side: Notification Bell & Language Selector Pill */}
+        {/* Right: PROMINENT MULTILINGUAL SELECTOR DROPDOWN & Bell */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
           
+          {/* Prominent Language Selector Dropdown */}
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: '0.4rem', 
+            background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', 
+            padding: '0.4rem 0.75rem', 
+            borderRadius: 'var(--radius-full)', 
+            boxShadow: '0 0 12px rgba(16, 185, 129, 0.35)',
+            cursor: 'pointer'
+          }}>
+            <Globe size={16} color="#ffffff" />
+            <select
+              value={selectedLang || lang}
+              onChange={(e) => handleLanguageChange(e.target.value)}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                color: '#ffffff',
+                fontSize: '0.825rem',
+                fontWeight: 700,
+                outline: 'none',
+                cursor: 'pointer',
+                fontFamily: 'Hind, Noto Sans Devanagari, sans-serif'
+              }}
+            >
+              {SUPPORTED_LANGUAGES.map((l) => (
+                <option key={l.code} value={l.code} style={{ background: '#0e2216', color: '#ffffff' }}>
+                  {l.flag} {l.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
           {/* Notifications Button */}
           <button 
             onClick={() => setShowNotificationModal(true)}
             style={{
               position: 'relative',
-              background: '#f8fafc',
-              border: '1px solid #e2e8f0',
+              background: 'rgba(255,255,255,0.05)',
+              border: '1px solid rgba(255,255,255,0.1)',
               borderRadius: '50%',
               width: '36px',
               height: '36px',
@@ -101,128 +115,52 @@ export default function PWAHeader({
               alignItems: 'center',
               justifyContent: 'center',
               cursor: 'pointer',
-              color: '#0f172a'
+              color: '#ffffff'
             }}
           >
             <Bell size={18} />
-            <span style={{
-              position: 'absolute',
-              top: '-2px',
-              right: '-2px',
-              background: '#ef4444',
-              color: '#ffffff',
-              fontSize: '0.65rem',
-              fontWeight: 800,
-              width: '16px',
-              height: '16px',
-              borderRadius: '50%',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              border: '2px solid #ffffff'
-            }}>
+            <span style={{ position: 'absolute', top: '-2px', right: '-2px', background: '#ef4444', color: '#ffffff', fontSize: '0.65rem', fontWeight: 800, width: '16px', height: '16px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               3
             </span>
           </button>
-
-          {/* Language Selector Pill */}
-          <div style={{
-            background: '#047857',
-            color: '#ffffff',
-            fontWeight: 800,
-            fontSize: '0.75rem',
-            padding: '0.3rem 0.65rem',
-            borderRadius: 'var(--radius-full)',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.25rem'
-          }}
-          onClick={() => {
-            const nextLang = selectedLang === 'hi' ? 'en' : 'hi';
-            setSelectedLang(nextLang);
-          }}
-          >
-            <span>{selectedLang === 'hi' ? 'HI' : 'EN'}</span>
-          </div>
 
         </div>
 
       </div>
 
-      {/* Secondary Row: Active Location Bar */}
-      <div style={{
-        background: '#f8faf8',
-        borderTop: '1px solid #f1f5f9',
-        padding: '0.35rem 1rem',
-        fontSize: '0.825rem',
-        color: '#475569'
-      }}>
-        <div style={{
-          maxWidth: '1200px',
-          margin: '0 auto',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between'
-        }}>
+      {/* Secondary Bar: Location & Profile Bar */}
+      <div style={{ background: 'rgba(6, 20, 13, 0.7)', borderTop: '1px solid rgba(255,255,255,0.05)', padding: '0.35rem 1rem', fontSize: '0.8rem', color: '#94a3b8' }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <button 
             onClick={onOpenProfile}
-            style={{
-              background: 'transparent',
-              border: 'none',
-              color: '#0f172a',
-              fontSize: '0.825rem',
-              fontWeight: 700,
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.35rem',
-              cursor: 'pointer',
-              padding: 0
-            }}
+            style={{ background: 'transparent', border: 'none', color: '#34d399', fontSize: '0.8rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.35rem', cursor: 'pointer', padding: 0 }}
           >
-            <MapPin size={15} color="#059669" />
-            <span>{farmerProfile?.village || 'गाज़ियाबाद'}, {farmerProfile?.district || 'गाज़ियाबाद'} ({farmerProfile?.state || 'उत्तर प्रदेश'})</span>
-            <ChevronDown size={14} color="#64748b" />
+            <MapPin size={15} color="#34d399" />
+            <span>{farmerProfile?.village || 'गोरखपुर'}, {farmerProfile?.district || 'गोरखपुर'} ({farmerProfile?.state || 'उत्तर प्रदेश'})</span>
+            <ChevronDown size={14} color="#94a3b8" />
           </button>
+
+          <span style={{ fontSize: '0.75rem', color: '#4ade80' }}>✓ 100% भाषा-अनुकूल एआई</span>
         </div>
       </div>
 
       {/* Drawer Menu */}
       {showDrawer && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          background: 'rgba(0,0,0,0.5)',
-          backdropFilter: 'blur(4px)',
-          zIndex: 2000,
-          display: 'flex'
-        }}>
-          <div style={{
-            width: '280px',
-            background: '#ffffff',
-            height: '100%',
-            padding: '1.5rem',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '1rem',
-            boxShadow: '4px 0 20px rgba(0,0,0,0.1)'
-          }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div style={{ fontSize: '1.2rem', fontWeight: 800, color: '#0f172a', fontFamily: 'Outfit' }}>SmartKisan Menu</div>
-              <button onClick={() => setShowDrawer(false)} style={{ background: 'transparent', border: 'none', color: '#0f172a' }}><X size={20} /></button>
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(6px)', zIndex: 2000, display: 'flex' }}>
+          <div style={{ width: '290px', background: '#0e2216', height: '100%', padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem', borderRight: '1px solid rgba(34, 197, 94, 0.3)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '0.75rem' }}>
+              <div style={{ fontSize: '1.2rem', fontWeight: 800, color: '#ffffff', fontFamily: 'Outfit' }}>SmartKisan मेनू</div>
+              <button onClick={() => setShowDrawer(false)} style={{ background: 'transparent', border: 'none', color: '#ffffff' }}><X size={20} /></button>
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '1rem' }}>
-              <button className="btn btn-outline" style={{ justifyContent: 'flex-start' }} onClick={() => { setActiveTab('home'); setShowDrawer(false); }}>🏠 होम (Home)</button>
-              <button className="btn btn-outline" style={{ justifyContent: 'flex-start' }} onClick={() => { setActiveTab('my-field'); setShowDrawer(false); }}>🌾 मेरी खेती (My Field)</button>
-              <button className="btn btn-outline" style={{ justifyContent: 'flex-start' }} onClick={() => { setActiveTab('mandi-prices'); setShowDrawer(false); }}>🛒 बाज़ार मंडी (Mandi)</button>
-              <button className="btn btn-outline" style={{ justifyContent: 'flex-start' }} onClick={() => { setActiveTab('gap-crop'); setShowDrawer(false); }}>🌿 गैप फसल सुझाव (Gap Engine)</button>
-              <button className="btn btn-outline" style={{ justifyContent: 'flex-start' }} onClick={() => { setActiveTab('weather-advisory'); setShowDrawer(false); }}>🌤️ मौसम पूर्वानुमान (Weather)</button>
-              <button className="btn btn-outline" style={{ justifyContent: 'flex-start' }} onClick={() => { setActiveTab('crop-school'); setShowDrawer(false); }}>📚 फसल स्कूल (Crop School)</button>
-              <button className="btn btn-outline" style={{ justifyContent: 'flex-start' }} onClick={() => { onOpenProfile(); setShowDrawer(false); }}>👤 किसान प्रोफ़ाइल (Profile)</button>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '0.5rem' }}>
+              <button className="btn btn-outline" style={{ justifyContent: 'flex-start' }} onClick={() => { setActiveTab('home'); setShowDrawer(false); }}><Home size={18} /> <span>होम (Home)</span></button>
+              <button className="btn btn-outline" style={{ justifyContent: 'flex-start' }} onClick={() => { setActiveTab('my-field'); setShowDrawer(false); }}><Sprout size={18} /> <span>मेरा खेत (My Field)</span></button>
+              <button className="btn btn-outline" style={{ justifyContent: 'flex-start' }} onClick={() => { setActiveTab('gap-crop'); setShowDrawer(false); }}><Sparkles size={18} /> <span>जायद फसल सलाहकार</span></button>
+              <button className="btn btn-outline" style={{ justifyContent: 'flex-start' }} onClick={() => { setActiveTab('profit-predictor'); setShowDrawer(false); }}><TrendingUp size={18} /> <span>फसल आय पूर्वानुमान</span></button>
+              <button className="btn btn-outline" style={{ justifyContent: 'flex-start' }} onClick={() => { setActiveTab('voice-assistant'); setShowDrawer(false); }}><Mic size={18} /> <span>किसान वाणी एआई</span></button>
+              <button className="btn btn-outline" style={{ justifyContent: 'flex-start' }} onClick={() => { setActiveTab('scheme-finder'); setShowDrawer(false); }}><FileText size={18} /> <span>किसान योजना मित्र</span></button>
+              <button className="btn btn-outline" style={{ justifyContent: 'flex-start' }} onClick={() => { onOpenProfile(); setShowDrawer(false); }}><User size={18} /> <span>किसान प्रोफाइल सेटअप</span></button>
             </div>
           </div>
           <div style={{ flex: 1 }} onClick={() => setShowDrawer(false)} />
@@ -231,33 +169,20 @@ export default function PWAHeader({
 
       {/* Notifications Modal */}
       {showNotificationModal && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          background: 'rgba(0,0,0,0.5)',
-          backdropFilter: 'blur(4px)',
-          zIndex: 2000,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: '1rem'
-        }}>
-          <div className="glass-card" style={{ maxWidth: '450px', width: '100%', background: '#ffffff' }}>
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(4px)', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
+          <div className="glass-card" style={{ maxWidth: '450px', width: '100%', background: '#0e2216', border: '1px solid rgba(34,197,94,0.3)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-              <h3 style={{ fontSize: '1.1rem', color: '#0f172a' }}>कृषि समाचार एवं अलर्ट (Notifications)</h3>
-              <button onClick={() => setShowNotificationModal(false)} style={{ background: 'transparent', border: 'none', color: '#0f172a' }}><X size={18} /></button>
+              <h3 style={{ fontSize: '1.1rem', color: '#ffffff' }}>कृषि सूचनाएं एवं अलर्ट</h3>
+              <button onClick={() => setShowNotificationModal(false)} style={{ background: 'transparent', border: 'none', color: '#ffffff' }}><X size={18} /></button>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
               {notifications.map((n, idx) => (
-                <div key={idx} style={{ background: '#f8fafc', padding: '0.75rem', borderRadius: 'var(--radius-sm)', border: '1px solid #e2e8f0' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#059669', fontWeight: 700, fontSize: '0.9rem' }}>
+                <div key={idx} style={{ background: 'rgba(6,20,13,0.8)', padding: '0.75rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-color)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#34d399', fontWeight: 700, fontSize: '0.9rem' }}>
                     <span>{n.icon}</span> <span>{n.title}</span>
                   </div>
-                  <p style={{ fontSize: '0.8rem', color: '#334155', margin: '0.25rem 0' }}>{n.desc}</p>
-                  <span style={{ fontSize: '0.7rem', color: '#64748b' }}>{n.time}</span>
+                  <p style={{ fontSize: '0.8rem', color: '#cbd5e1', margin: '0.25rem 0' }}>{n.desc}</p>
+                  <span style={{ fontSize: '0.7rem', color: '#94a3b8' }}>{n.time}</span>
                 </div>
               ))}
             </div>

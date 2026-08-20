@@ -12,6 +12,7 @@ import {
   ChevronRight,
   Sparkles
 } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
 
 const CROP_PILLS = [
   { code: 'Wheat', label: 'गेहूं', icon: '🌾' },
@@ -23,6 +24,7 @@ const CROP_PILLS = [
 ];
 
 export default function MandiPriceSearch({ farmerProfile, setActiveTab }) {
+  const { t } = useLanguage();
   const [selectedCrop, setSelectedCrop] = useState('Wheat');
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTabSub, setActiveTabSub] = useState('nearby');
@@ -52,10 +54,10 @@ export default function MandiPriceSearch({ farmerProfile, setActiveTab }) {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
-              <span className="badge badge-warning">Module 2 — Mandi Live</span>
-              <span style={{ fontSize: '0.75rem', color: '#4ade80' }}>🔄 अंतिम अपडेट: 14 Aug 2026, 07:30 AM</span>
+              <span className="badge badge-warning">Mandi Live</span>
+              <span style={{ fontSize: '0.75rem', color: '#4ade80' }}>🔄 14 Aug 2026, 07:30 AM</span>
             </div>
-            <h2 style={{ fontSize: '1.6rem', color: '#ffffff', fontFamily: 'Hind, Noto Sans Devanagari, sans-serif' }}>मंडी भाव</h2>
+            <h2 style={{ fontSize: '1.6rem', color: '#ffffff', fontFamily: 'Hind, Noto Sans Devanagari, sans-serif' }}>{t('mandi_title')}</h2>
             <div style={{ fontSize: '0.825rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
               <MapPin size={14} color="#34d399" />
               <span>{district}, {state}</span>
@@ -67,7 +69,7 @@ export default function MandiPriceSearch({ farmerProfile, setActiveTab }) {
             style={{ fontSize: '0.8rem', color: '#fbbf24', borderColor: 'rgba(251, 191, 36, 0.4)' }}
             onClick={() => setAlertSet(!alertSet)}
           >
-            <Bell size={14} /> {alertSet ? '✓ अलर्ट सक्रिय' : 'कीमत अलर्ट सेट करें'}
+            <Bell size={14} /> {alertSet ? '✓ Alert Active' : 'Set Price Alert'}
           </button>
         </div>
       </div>
@@ -77,7 +79,7 @@ export default function MandiPriceSearch({ farmerProfile, setActiveTab }) {
         <div style={{ position: 'relative', flex: 1 }}>
           <input 
             type="text" 
-            placeholder="फसल या मंडी खोजें..." 
+            placeholder={t('mandi_search_ph')}
             className="form-control"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -87,7 +89,7 @@ export default function MandiPriceSearch({ farmerProfile, setActiveTab }) {
         </div>
 
         <button className="btn btn-outline" style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', padding: '0.5rem 1rem' }}>
-          <Filter size={16} /> <span>फ़िल्टर</span>
+          <Filter size={16} /> <span>Filter</span>
         </button>
       </div>
 
@@ -105,7 +107,7 @@ export default function MandiPriceSearch({ farmerProfile, setActiveTab }) {
             cursor: 'pointer'
           }}
         >
-          पास की मंडियां
+          Nearby Mandis
         </button>
         <button 
           onClick={() => setActiveTabSub('my')}
@@ -119,7 +121,7 @@ export default function MandiPriceSearch({ farmerProfile, setActiveTab }) {
             cursor: 'pointer'
           }}
         >
-          मेरी मंडियां
+          My Mandis
         </button>
         <button 
           onClick={() => setActiveTabSub('all')}
@@ -133,7 +135,7 @@ export default function MandiPriceSearch({ farmerProfile, setActiveTab }) {
             cursor: 'pointer'
           }}
         >
-          सभी मंडियां
+          All Mandis
         </button>
       </div>
 
@@ -168,20 +170,20 @@ export default function MandiPriceSearch({ farmerProfile, setActiveTab }) {
       <div className="glass-card" style={{ background: 'rgba(6, 20, 13, 0.8)', border: '1px solid var(--border-color)' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
-            <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>आज का बाजार रुझान ({selectedCrop === 'Wheat' ? 'गेहूं' : 'मूंग'})</div>
+            <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Market Trend ({selectedCrop})</div>
             <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#fff', fontFamily: 'Outfit' }}>
-              ₹2,365 <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>/कुंतल औसत</span>
+              ₹2,365 <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>/Qtl Avg</span>
             </div>
           </div>
 
           <div style={{ display: 'flex', gap: '1.5rem', textAlign: 'right' }}>
             <div>
-              <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>कल के मुकाबले</span>
+              <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>vs Yesterday</span>
               <div style={{ color: '#4ade80', fontWeight: 700, fontSize: '0.95rem' }}>↗ + ₹45</div>
             </div>
             <div>
-              <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>बाजार रुझान</span>
-              <div style={{ color: '#4ade80', fontWeight: 700, fontSize: '0.95rem' }}>↑ तेजी</div>
+              <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{t('trend')}</span>
+              <div style={{ color: '#4ade80', fontWeight: 700, fontSize: '0.95rem' }}>↑ Upward</div>
             </div>
           </div>
         </div>
@@ -190,12 +192,12 @@ export default function MandiPriceSearch({ farmerProfile, setActiveTab }) {
       {/* Mandi Price Comparison Table */}
       <div className="glass-card">
         <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1.2fr 1fr 1.2fr', fontSize: '0.75rem', color: 'var(--text-muted)', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem', marginBottom: '0.5rem' }}>
-          <span>मंडी</span>
-          <span style={{ textAlign: 'right' }}>आगमन</span>
-          <span style={{ textAlign: 'right' }}>मिन (₹)</span>
-          <span style={{ textAlign: 'right' }}>मॉडल (₹)</span>
-          <span style={{ textAlign: 'right' }}>मैक्स (₹)</span>
-          <span style={{ textAlign: 'right' }}>अपडेटेड</span>
+          <span>{t('mandi')}</span>
+          <span style={{ textAlign: 'right' }}>Arrival</span>
+          <span style={{ textAlign: 'right' }}>{t('min_price')}</span>
+          <span style={{ textAlign: 'right' }}>{t('modal_price')}</span>
+          <span style={{ textAlign: 'right' }}>{t('max_price')}</span>
+          <span style={{ textAlign: 'right' }}>{t('updated')}</span>
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
@@ -225,48 +227,6 @@ export default function MandiPriceSearch({ farmerProfile, setActiveTab }) {
             </div>
           ))}
         </div>
-
-        <div style={{ marginTop: '1rem', fontSize: '0.75rem', color: 'var(--text-muted)', background: 'rgba(6,20,13,0.6)', padding: '0.65rem', borderRadius: 'var(--radius-sm)' }}>
-          ℹ️ नोट: कीमतें थोक (क्विंटल) के लिए हैं। वास्तविक कीमत गुणवत्ता, नमी, मांग और अन्य कारकों पर निर्भर करती है।
-        </div>
-      </div>
-
-      {/* Mandi Price History Chart (7D, 15D, 1M, 3M, 1Y) */}
-      <div className="glass-card">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-          <h3 style={{ fontSize: '1.1rem', color: '#fff' }}>मंडी भाव इतिहास ({district} APMC)</h3>
-          
-          <div style={{ display: 'flex', gap: '0.35rem' }}>
-            {['7d', '15d', '1m', '3m', '1y'].map((p) => (
-              <button
-                key={p}
-                onClick={() => setSelectedTrendPeriod(p)}
-                style={{
-                  padding: '0.25rem 0.55rem',
-                  fontSize: '0.75rem',
-                  borderRadius: 'var(--radius-sm)',
-                  border: selectedTrendPeriod === p ? '1px solid #10b981' : '1px solid var(--border-color)',
-                  background: selectedTrendPeriod === p ? '#059669' : 'transparent',
-                  color: '#fff',
-                  cursor: 'pointer'
-                }}
-              >
-                {p === '7d' ? '7 दिन' : p === '15d' ? '15 दिन' : p === '1m' ? '1 माह' : p === '3m' ? '3 माह' : '1 वर्ष'}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Visual Trend Chart Simulation Bar */}
-        <div style={{ height: '140px', background: 'rgba(6,20,13,0.8)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-color)', padding: '1rem', display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: '0.5rem' }}>
-          <div style={{ textAlign: 'center', flex: 1 }}><div style={{ height: '60px', background: '#059669', borderRadius: '4px 4px 0 0' }} /><span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>08 Aug</span></div>
-          <div style={{ textAlign: 'center', flex: 1 }}><div style={{ height: '75px', background: '#059669', borderRadius: '4px 4px 0 0' }} /><span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>09 Aug</span></div>
-          <div style={{ textAlign: 'center', flex: 1 }}><div style={{ height: '70px', background: '#059669', borderRadius: '4px 4px 0 0' }} /><span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>10 Aug</span></div>
-          <div style={{ textAlign: 'center', flex: 1 }}><div style={{ height: '50px', background: '#f87171', borderRadius: '4px 4px 0 0' }} /><span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>11 Aug</span></div>
-          <div style={{ textAlign: 'center', flex: 1 }}><div style={{ height: '90px', background: '#059669', borderRadius: '4px 4px 0 0' }} /><span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>12 Aug</span></div>
-          <div style={{ textAlign: 'center', flex: 1 }}><div style={{ height: '110px', background: '#fbbf24', borderRadius: '4px 4px 0 0' }} /><span style={{ fontSize: '0.65rem', color: '#fbbf24', fontWeight: 700 }}>14 Aug ₹2,350</span></div>
-        </div>
-
       </div>
 
     </div>
