@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState } from 'react';
 import PWAHeader from './components/PWAHeader';
 import PWABottomNav from './components/PWABottomNav';
 import PWAHome from './components/PWAHome';
@@ -44,7 +44,7 @@ export default function App() {
         minHeight: '100vh',
         display: 'flex',
         flexDirection: 'column',
-        background: '#06140d',
+        background: 'var(--bg-main)',
         color: 'var(--text-main)',
         fontFamily: 'Hind, Noto Sans Devanagari, sans-serif'
       }}>
@@ -126,8 +126,8 @@ export default function App() {
             left: 0,
             right: 0,
             bottom: 0,
-            background: 'rgba(0, 0, 0, 0.85)',
-            backdropFilter: 'blur(8px)',
+            background: 'rgba(0, 0, 0, 0.65)',
+            backdropFilter: 'blur(4px)',
             zIndex: 9999,
             display: 'flex',
             alignItems: 'center',

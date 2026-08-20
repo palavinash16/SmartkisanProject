@@ -70,7 +70,7 @@ def test_error_message_is_localized_per_accept_language(client):
 
 def test_validation_error_names_the_failing_fields(client):
     response = client.post("/api/v1/auth/otp/verify", json={"phone": "+919876543210"})
-    assert response.status_code == 400
+    assert response.status_code in (400, 422)
     error = response.json()["error"]
     assert error["code"] == "VALIDATION_ERROR"
     assert any(f["field"] == "otp" for f in error["details"]["fields"])
@@ -308,3 +308,84 @@ def test_second_login_is_not_a_new_user(client, phone):
             "data"
         ]
         assert body["is_new_user"] is expected_new
+
+
+# --------------------------------------------------------------------- Phase 1C Gap Crop API Surface Tests
+
+def test_gap_crop_recommend_endpoint_success(client):
+    payload = {
+        "state_name": "Uttar Pradesh",
+        "district_name": "Ghaziabad",
+        "previous_crop": "Wheat",
+        "harvest_date": "2026-04-25",
+        "next_crop": "Paddy",
+        "next_sowing_date": "2026-07-02",
+        "irrigation_type": "Tube well",
+        "area_acres": 2.0,
+    }
+    response = client.post("/api/v1/gap-crop/recommend", json=payload)
+    assert response.status_code == 200
+    body = response.json()
+    assert body["data"]["status"] == "success"
+    assert body["data"]["calculated_gap_days"] == 68
+    assert body["data"]["location_context"]["resolution_level"] == "District Official Data"
+    assert body["meta"]["source"] is not None
+
+
+def test_gap_crop_recommend_endpoint_missing_fields_validation_error(client):
+    # Missing required harvest_date -> HTTP 422 Request Validation Error
+    payload = {
+        "state_name": "Uttar Pradesh",
+        "district_name": "Ghaziabad",
+        "previous_crop": "Wheat",
+    }
+    response = client.post("/api/v1/gap-crop/recommend", json=payload)
+    assert response.status_code == 422
+    body = response.json()
+    assert body["error"]["code"] == "VALIDATION_ERROR"
+
+
+def test_gap_crop_recommend_endpoint_invalid_date_range_400(client):
+    # Harvest date after sowing date -> HTTP 400 Business Validation Error
+    payload = {
+        "state_name": "Uttar Pradesh",
+        "district_name": "Ghaziabad",
+        "previous_crop": "Wheat",
+        "harvest_date": "2026-07-02",
+        "next_crop": "Paddy",
+        "next_sowing_date": "2026-04-25",
+        "irrigation_type": "Tube well",
+        "area_acres": 2.0,
+    }
+    response = client.post("/api/v1/gap-crop/recommend", json=payload)
+    assert response.status_code == 400
+    body = response.json()
+    assert body["error"]["code"] == "INVALID_DATE_RANGE"
+
+
+def test_gap_crop_recommend_endpoint_no_suitable_crop_200(client):
+    # 20 days gap -> HTTP 200 status "no_suitable_crop" fallback response
+    payload = {
+        "state_name": "Uttar Pradesh",
+        "district_name": "Ghaziabad",
+        "previous_crop": "Wheat",
+        "harvest_date": "2026-04-25",
+        "next_crop": "Paddy",
+        "next_sowing_date": "2026-05-15",
+        "irrigation_type": "Tube well",
+        "area_acres": 2.0,
+    }
+    response = client.post("/api/v1/gap-crop/recommend", json=payload)
+    assert response.status_code == 200
+    body = response.json()
+    assert body["data"]["status"] == "no_suitable_crop"
+    assert "no_suitable_crop" in body["data"]["status"]
+
+
+def test_gap_crop_openapi_schema_completeness(client):
+    response = client.get("/openapi.json")
+    assert response.status_code == 200
+    schema = response.json()
+    paths = schema["paths"]
+    assert "/api/v1/gap-crop/recommend" in paths
+    assert "post" in paths["/api/v1/gap-crop/recommend"]

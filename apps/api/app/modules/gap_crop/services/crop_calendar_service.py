@@ -1,4 +1,4 @@
-"""Regional Crop Calendar & Location Precedence Service.
+﻿"""Regional Crop Calendar & Location Precedence Service.
 
 Evaluates regional agricultural suitability adhering strictly to the location precedence hierarchy:
 1. District-Specific Match (Level 1 - Highest Resolution)
@@ -43,9 +43,21 @@ def evaluate_regional_suitability(
     norm_dist = (district_name or "").strip().lower()
     norm_crop = crop_name.strip().lower()
 
-    # Determine Agro-Climatic Zone for district if available
-    dist_info = SEED_DISTRICT_ZONE_MAP.get(district_name or "", {})
-    mapped_zone = dist_info.get("zone", None)
+    # Determine Agro-Climatic Zone for district if available (supports (state, district) tuple or string key)
+    mapped_zone = None
+    if state_name and district_name:
+        zone_val = SEED_DISTRICT_ZONE_MAP.get((state_name, district_name))
+        if isinstance(zone_val, str):
+            mapped_zone = zone_val
+        elif isinstance(zone_val, dict):
+            mapped_zone = zone_val.get("zone")
+
+    if not mapped_zone and district_name:
+        zone_val = SEED_DISTRICT_ZONE_MAP.get(district_name)
+        if isinstance(zone_val, str):
+            mapped_zone = zone_val
+        elif isinstance(zone_val, dict):
+            mapped_zone = zone_val.get("zone")
 
     # ---------------------------------------------------------------- Level 1: District-Specific Match
     if norm_dist:
@@ -67,7 +79,7 @@ def evaluate_regional_suitability(
                     score,
                     {
                         "resolution_level": "District Official Data",
-                        "zone": mapped_zone,
+                        "zone": mapped_zone or rec.get("agro_climatic_zone"),
                         "source_provenance": rec.get("source", "Official State / ICAR Records"),
                     },
                 )
@@ -78,7 +90,7 @@ def evaluate_regional_suitability(
                     5.0,
                     {
                         "resolution_level": "District Official Data",
-                        "zone": mapped_zone,
+                        "zone": mapped_zone or rec.get("agro_climatic_zone"),
                         "source_provenance": rec.get("source", "Official State / ICAR Records"),
                     },
                 )

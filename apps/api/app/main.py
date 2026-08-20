@@ -132,7 +132,7 @@ async def handle_validation_error(request: Request, exc: RequestValidationError)
         for err in exc.errors()
     ]
     return _error_response(
-        request, 400, "VALIDATION_ERROR", "Request validation failed", {"fields": fields}
+        request, 422, "VALIDATION_ERROR", "Request validation failed", {"fields": fields}
     )
 
 

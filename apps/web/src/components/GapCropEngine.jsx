@@ -1,190 +1,631 @@
 ﻿import React, { useState } from 'react';
-import { GAP_CROPS_DATABASE } from '../data/mockData';
-import { Sprout, Calendar, ShieldCheck, DollarSign, Leaf, Zap, Award, Sparkles, TrendingUp } from 'lucide-react';
+import { api, ApiError } from '../shared/api/client';
+import { useLanguage } from '../context/LanguageContext';
+import LandUnitInput from './LandUnitInput';
+import { STATES_AND_DISTRICTS } from '../data/mockData';
+import { 
+  Sprout, 
+  Calendar, 
+  ShieldCheck, 
+  Award, 
+  Sparkles, 
+  TrendingUp, 
+  CheckCircle2, 
+  AlertTriangle, 
+  MapPin, 
+  ArrowRight, 
+  RotateCcw,
+  Info,
+  Droplets,
+  Zap,
+  ChevronDown,
+  ChevronUp
+} from 'lucide-react';
 
-export default function GapCropEngine() {
-  const [gapDays, setGapDays] = useState(65);
-  const [landSize, setLandSize] = useState(2.0);
-  const [soilType, setSoilType] = useState('Alluvial');
-  const [irrigation, setIrrigation] = useState('BOREWELL');
-  const [previousCrop, setPreviousCrop] = useState('Wheat');
+export default function GapCropEngine({ farmerProfile }) {
+  const { t } = useLanguage();
 
-  const filteredCrops = GAP_CROPS_DATABASE.filter(crop => crop.duration <= gapDays + 10);
+  // 6-step form state
+  const [formData, setFormData] = useState({
+    state_name: farmerProfile?.state || 'Uttar Pradesh',
+    district_name: farmerProfile?.district || 'Ghaziabad',
+    previous_crop: farmerProfile?.previousCrop || 'Wheat',
+    harvest_date: '2026-04-25',
+    next_crop: farmerProfile?.nextCrop || 'Paddy',
+    next_sowing_date: '2026-07-02',
+    irrigation_type: farmerProfile?.irrigation || 'Tube well',
+    area_acres: parseFloat(farmerProfile?.landArea) || 2.0,
+  });
+
+  const [currentStep, setCurrentStep] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [loadingStep, setLoadingStep] = useState(1);
+  const [result, setResult] = useState(null);
+  const [error, setError] = useState(null);
+  const [expandedBreakdown, setExpandedBreakdown] = useState(null);
+
+  const PREVIOUS_CROPS = [
+    'Wheat',
+    'Mustard',
+    'Potato',
+    'Paddy',
+    'Sugarcane',
+    'Gram (Chana)',
+    'Barley',
+    'Vegetables'
+  ];
+
+  const IRRIGATION_TYPES = [
+    'Tube well',
+    'Borewell',
+    'Canal',
+    'Drip',
+    'Sprinkler',
+    'Rainfed'
+  ];
+
+  const handleInputChange = (field, value) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+    setError(null);
+  };
+
+  const validateForm = () => {
+    if (!formData.state_name || !formData.district_name) {
+      setError(t('error_validation'));
+      return false;
+    }
+    if (!formData.harvest_date || !formData.next_sowing_date) {
+      setError(t('error_validation'));
+      return false;
+    }
+    if (new Date(formData.harvest_date) >= new Date(formData.next_sowing_date)) {
+      setError(t('error_date_range'));
+      return false;
+    }
+    return true;
+  };
+
+  const handleSubmit = async (e) => {
+    if (e) e.preventDefault();
+    if (!validateForm()) return;
+
+    setLoading(true);
+    setError(null);
+    setResult(null);
+
+    setLoadingStep(1);
+    const stepTimer1 = setTimeout(() => setLoadingStep(2), 400);
+    const stepTimer2 = setTimeout(() => setLoadingStep(3), 800);
+
+    try {
+      const payload = {
+        state_name: formData.state_name,
+        district_name: formData.district_name,
+        previous_crop: formData.previous_crop,
+        harvest_date: formData.harvest_date,
+        next_crop: formData.next_crop,
+        next_sowing_date: formData.next_sowing_date,
+        irrigation_type: formData.irrigation_type,
+        area_acres: parseFloat(formData.area_acres) || 2.0,
+      };
+
+      const res = await api.post('/gap-crop/recommend', payload);
+      if (res?.data) {
+        setResult(res.data);
+      } else {
+        throw new Error('Response payload invalid');
+      }
+    } catch (err) {
+      if (err instanceof ApiError) {
+        setError(err.messageLocalized || err.message || t('error_network'));
+      } else {
+        setError(t('error_network'));
+      }
+    } finally {
+      clearTimeout(stepTimer1);
+      clearTimeout(stepTimer2);
+      setLoading(false);
+    }
+  };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', paddingBottom: '4rem' }}>
       
-      {/* Module Title Header */}
-      <div className="glass-panel" style={{ padding: '1.5rem 2rem', background: 'linear-gradient(135deg, rgba(14,34,22,0.95) 0%, rgba(6,20,13,0.95) 100%)', border: '1px solid var(--border-glow)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
-          <div style={{ background: 'rgba(16, 185, 129, 0.2)', padding: '0.65rem', borderRadius: '14px', color: '#34d399', boxShadow: '0 0 15px rgba(16, 185, 129, 0.3)' }}>
+      {/* ------------------------------------------------------------- MODULE HEADER */}
+      <div className="glass-card" style={{
+        background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
+        color: '#ffffff',
+        padding: '1.25rem'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          <div style={{ background: 'rgba(255,255,255,0.2)', padding: '0.65rem', borderRadius: '12px', color: '#ffffff' }}>
             <Sprout size={28} />
           </div>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <h2 style={{ fontSize: '1.6rem', color: '#ffffff' }}>Inter-Season Rotation & Zaid Crop Advisor</h2>
-              <span className="badge badge-success" style={{ fontSize: '0.7rem' }}>जायद एवं अंतर-फसल समृद्धि</span>
+              <h2 style={{ fontSize: '1.4rem', color: '#ffffff', margin: 0 }}>
+                {t('gap_crop_card_title')}
+              </h2>
+              <span className="badge badge-success" style={{ background: '#dcfce7', color: '#15803d' }}>Phase 1 Core Engine</span>
             </div>
-            <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>
-              Maximize land productivity and revenue during 30–90 day idle windows between Rabi harvest and Kharif sowing.
+            <p style={{ fontSize: '0.85rem', color: '#a7f3d0', margin: '0.2rem 0 0 0' }}>
+              {t('gap_crop_card_desc')}
             </p>
           </div>
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 2.2fr', gap: '1.5rem' }}>
-        
-        {/* Interactive Parameter Controls */}
-        <div className="glass-card" style={{ height: 'fit-content' }}>
-          <h3 style={{ fontSize: '1.15rem', marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.75rem' }}>
-            <Zap size={18} color="var(--primary)" /> Farm Rotation Parameters
-          </h3>
+      {/* ------------------------------------------------------------- MAIN CONTENT AREA */}
+      {!result ? (
+        <div className="glass-card">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', borderBottom: '1px solid #e2e8f0', paddingBottom: '0.75rem' }}>
+            <h3 style={{ fontSize: '1.15rem', color: '#0f172a', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <Zap size={20} color="#059669" /> {t('gap_form_title')}
+            </h3>
+            <span style={{ fontSize: '0.8rem', color: '#059669', fontWeight: 700 }}>
+              Step {currentStep} of 6
+            </span>
+          </div>
 
-          <div className="form-group">
-            <label className="form-label" style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span>Available Rotation Window:</span>
-              <strong style={{ color: 'var(--primary)' }}>{gapDays} Days</strong>
-            </label>
-            <input 
-              type="range" 
-              min="40" 
-              max="90" 
-              value={gapDays} 
-              onChange={(e) => setGapDays(Number(e.target.value))}
-              style={{ accentColor: 'var(--primary)', cursor: 'pointer', width: '100%' }}
-            />
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-              <span>40 Days (Short)</span>
-              <span>65 Days (Zaid Standard)</span>
-              <span>90 Days (Extended)</span>
+          {/* Inline Error Alert */}
+          {error && (
+            <div style={{ 
+              background: '#fef2f2', 
+              border: '1px solid #fca5a5', 
+              color: '#b91c1c', 
+              padding: '0.75rem 1rem', 
+              borderRadius: 'var(--radius-sm)', 
+              marginBottom: '1rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              fontSize: '0.875rem'
+            }}>
+              <AlertTriangle size={18} color="#dc2626" />
+              <span>{error}</span>
+            </div>
+          )}
+
+          {/* Progressive 6-Step Form Controls */}
+          <form onSubmit={handleSubmit}>
+            
+            {/* Step 1: Location */}
+            {currentStep === 1 && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <h4 style={{ fontSize: '1rem', color: '#0f172a', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                  <MapPin size={18} color="#059669" /> {t('step_1_location')}
+                </h4>
+                
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
+                  <div className="form-group">
+                    <label className="form-label">Rajya (State):</label>
+                    <select 
+                      className="form-select"
+                      value={formData.state_name}
+                      onChange={(e) => {
+                        const st = e.target.value;
+                        const dists = STATES_AND_DISTRICTS[st] || [];
+                        setFormData((prev) => ({ ...prev, state_name: st, district_name: dists[0] || '' }));
+                      }}
+                    >
+                      {Object.keys(STATES_AND_DISTRICTS).map((st) => (
+                        <option key={st} value={st}>{st}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="form-group">
+                    <label className="form-label">Zila (District):</label>
+                    <select 
+                      className="form-select"
+                      value={formData.district_name}
+                      onChange={(e) => handleInputChange('district_name', e.target.value)}
+                    >
+                      {(STATES_AND_DISTRICTS[formData.state_name] || ['Ghaziabad']).map((d) => (
+                        <option key={d} value={d}>{d}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '0.5rem' }}>
+                  <button type="button" className="btn btn-primary" onClick={() => setCurrentStep(2)}>
+                    <span>{t('btn_next')}</span>
+                    <ArrowRight size={16} />
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Step 2: Previous Crop */}
+            {currentStep === 2 && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <h4 style={{ fontSize: '1rem', color: '#0f172a' }}>
+                  {t('step_2_prev_crop')}
+                </h4>
+                
+                <div className="form-group">
+                  <label className="form-label">{t('previous_crop')}:</label>
+                  <select 
+                    className="form-select"
+                    value={formData.previous_crop}
+                    onChange={(e) => handleInputChange('previous_crop', e.target.value)}
+                  >
+                    {PREVIOUS_CROPS.map((c) => (
+                      <option key={c} value={c}>{c}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.5rem' }}>
+                  <button type="button" className="btn btn-outline" onClick={() => setCurrentStep(1)}>{t('btn_prev')}</button>
+                  <button type="button" className="btn btn-primary" onClick={() => setCurrentStep(3)}>{t('btn_next')} <ArrowRight size={16} /></button>
+                </div>
+              </div>
+            )}
+
+            {/* Step 3: Harvest Date */}
+            {currentStep === 3 && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <h4 style={{ fontSize: '1rem', color: '#0f172a' }}>
+                  {t('step_3_harvest_date')}
+                </h4>
+                
+                <div className="form-group">
+                  <label className="form-label">Harvest Date (YYYY-MM-DD):</label>
+                  <input 
+                    type="date"
+                    className="form-input"
+                    value={formData.harvest_date}
+                    onChange={(e) => handleInputChange('harvest_date', e.target.value)}
+                  />
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.5rem' }}>
+                  <button type="button" className="btn btn-outline" onClick={() => setCurrentStep(2)}>{t('btn_prev')}</button>
+                  <button type="button" className="btn btn-primary" onClick={() => setCurrentStep(4)}>{t('btn_next')} <ArrowRight size={16} /></button>
+                </div>
+              </div>
+            )}
+
+            {/* Step 4: Next Sowing Date */}
+            {currentStep === 4 && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <h4 style={{ fontSize: '1rem', color: '#0f172a' }}>
+                  {t('step_4_sowing_date')}
+                </h4>
+                
+                <div className="form-group">
+                  <label className="form-label">Next Planned Sowing Date (YYYY-MM-DD):</label>
+                  <input 
+                    type="date"
+                    className="form-input"
+                    value={formData.next_sowing_date}
+                    onChange={(e) => handleInputChange('next_sowing_date', e.target.value)}
+                  />
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.5rem' }}>
+                  <button type="button" className="btn btn-outline" onClick={() => setCurrentStep(3)}>{t('btn_prev')}</button>
+                  <button type="button" className="btn btn-primary" onClick={() => setCurrentStep(5)}>{t('btn_next')} <ArrowRight size={16} /></button>
+                </div>
+              </div>
+            )}
+
+            {/* Step 5: Irrigation */}
+            {currentStep === 5 && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <h4 style={{ fontSize: '1rem', color: '#0f172a' }}>
+                  {t('step_5_irrigation')}
+                </h4>
+                
+                <div className="form-group">
+                  <label className="form-label">{t('irrigation_facility')}:</label>
+                  <select 
+                    className="form-select"
+                    value={formData.irrigation_type}
+                    onChange={(e) => handleInputChange('irrigation_type', e.target.value)}
+                  >
+                    {IRRIGATION_TYPES.map((i) => (
+                      <option key={i} value={i}>{i}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.5rem' }}>
+                  <button type="button" className="btn btn-outline" onClick={() => setCurrentStep(4)}>{t('btn_prev')}</button>
+                  <button type="button" className="btn btn-primary" onClick={() => setCurrentStep(6)}>{t('btn_next')} <ArrowRight size={16} /></button>
+                </div>
+              </div>
+            )}
+
+            {/* Step 6: Land Area & Final Submit */}
+            {currentStep === 6 && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <h4 style={{ fontSize: '1rem', color: '#0f172a' }}>
+                  {t('step_6_area')}
+                </h4>
+                
+                <LandUnitInput 
+                  state={formData.state_name}
+                  valueAcres={formData.area_acres}
+                  onChangeAcres={(acres) => handleInputChange('area_acres', acres)}
+                />
+
+                <div style={{ 
+                  background: '#f0fdf4', 
+                  border: '1px solid #bbf7d0', 
+                  borderRadius: 'var(--radius-sm)', 
+                  padding: '0.85rem',
+                  fontSize: '0.825rem',
+                  color: '#166534'
+                }}>
+                  <strong style={{ display: 'block', marginBottom: '0.2rem' }}>✓ Summary:</strong>
+                  <span>{formData.district_name}, {formData.state_name} • Prev: {formData.previous_crop} • Harvest: {formData.harvest_date} → Sowing: {formData.next_sowing_date}</span>
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.5rem' }}>
+                  <button type="button" className="btn btn-outline" onClick={() => setCurrentStep(5)}>{t('btn_prev')}</button>
+                  
+                  <button 
+                    type="submit" 
+                    className="btn btn-primary"
+                    disabled={loading}
+                    style={{ padding: '0.75rem 1.5rem', fontSize: '1rem' }}
+                  >
+                    {loading ? (
+                      <>
+                        <Sprout className="animate-spin" size={18} />
+                        <span>Analysis In Progress...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles size={18} />
+                        <span>{t('btn_submit_crop')}</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            )}
+
+          </form>
+
+          {/* Animated Loading State */}
+          {loading && (
+            <div style={{ 
+              marginTop: '1.5rem', 
+              padding: '1.25rem', 
+              background: '#ecfdf5', 
+              borderRadius: 'var(--radius-sm)', 
+              border: '1px solid #a7f3d0',
+              textAlign: 'center'
+            }}>
+              <Sprout className="animate-spin" size={32} color="#059669" style={{ margin: '0 auto 0.5rem auto' }} />
+              <h4 style={{ color: '#047857', fontSize: '1rem', margin: '0 0 0.5rem 0' }}>
+                Analyzing verified agricultural suitability for your field...
+              </h4>
+              <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', fontSize: '0.8rem', color: '#065f46' }}>
+                <span style={{ fontWeight: loadingStep >= 1 ? 700 : 400 }}>✓ Gap Duration Check</span>
+                <span style={{ fontWeight: loadingStep >= 2 ? 700 : 400 }}>{loadingStep >= 2 ? '✓ Regional Suitability' : '• Regional Suitability'}</span>
+                <span style={{ fontWeight: loadingStep >= 3 ? 700 : 400 }}>{loadingStep >= 3 ? '✓ Scoring Ranking' : '• Scoring Ranking'}</span>
+              </div>
+            </div>
+          )}
+        </div>
+      ) : (
+        /* ------------------------------------------------------------- RESULT VIEW */
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+          
+          {/* Result Header & Controls */}
+          <div className="glass-card" style={{ background: '#f8faf8' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem' }}>
+              <div>
+                <span className="badge badge-success" style={{ marginBottom: '0.35rem' }}>
+                  {result.status === 'success' ? '✓ Recommendation Available' : '⚠️ No Suitable Crop Found'}
+                </span>
+                <h3 style={{ fontSize: '1.3rem', color: '#0f172a', margin: 0 }}>
+                  {t('recommendations_title')}
+                </h3>
+              </div>
+
+              <button 
+                onClick={() => setResult(null)}
+                className="btn btn-outline"
+                style={{ fontSize: '0.825rem' }}
+              >
+                <RotateCcw size={15} />
+                <span>{t('try_again_cta')}</span>
+              </button>
+            </div>
+
+            {/* Gap Summary Bar */}
+            <div style={{ 
+              display: 'flex', 
+              flexWrap: 'wrap', 
+              gap: '1.25rem', 
+              marginTop: '1rem', 
+              paddingTop: '0.85rem', 
+              borderTop: '1px solid #e2e8f0',
+              fontSize: '0.85rem',
+              color: '#334155'
+            }}>
+              <div>
+                <span style={{ color: '#64748b' }}>{t('available_gap')} </span>
+                <strong style={{ color: '#059669', fontSize: '1rem' }}>{result.calculated_gap_days} {t('days')}</strong>
+              </div>
+              <div>
+                <span style={{ color: '#64748b' }}>Location: </span>
+                <strong>{result.location_context?.district_name}, {result.location_context?.state_name}</strong>
+              </div>
+              <div>
+                <span style={{ color: '#64748b' }}>Precedence Resolution: </span>
+                <strong style={{ color: '#0284c7' }}>{result.location_context?.resolution_level}</strong>
+              </div>
             </div>
           </div>
 
-          <div className="form-group">
-            <label className="form-label" style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span>Cultivable Area (Acres):</span>
-              <strong style={{ color: 'var(--accent-gold)' }}>{landSize} Acres</strong>
-            </label>
-            <input 
-              type="range" 
-              min="0.5" 
-              max="10" 
-              step="0.5"
-              value={landSize} 
-              onChange={(e) => setLandSize(Number(e.target.value))}
-              style={{ accentColor: 'var(--accent-gold)', cursor: 'pointer', width: '100%' }}
-            />
-          </div>
+          {/* Successful Recommendations List */}
+          {result.status === 'success' && result.top_recommendations?.length > 0 ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              {result.top_recommendations.map((rec, idx) => (
+                <div 
+                  key={rec.crop_code || idx}
+                  className="glass-card"
+                  style={{
+                    border: idx === 0 ? '2px solid #059669' : '1px solid #e2e8f0',
+                    background: idx === 0 ? '#f0fdf4' : '#ffffff',
+                    boxShadow: idx === 0 ? '0 6px 20px rgba(5, 150, 105, 0.12)' : 'var(--shadow-sm)'
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '0.75rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                      <div style={{
+                        fontSize: '1.5rem',
+                        fontWeight: 800,
+                        width: '42px',
+                        height: '42px',
+                        borderRadius: '50%',
+                        background: idx === 0 ? '#059669' : '#e2e8f0',
+                        color: idx === 0 ? '#ffffff' : '#0f172a',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}>
+                        {idx === 0 ? '🥇' : idx === 1 ? '🥈' : '🥉'}
+                      </div>
 
-          <div className="form-group">
-            <label className="form-label">Soil Classification:</label>
-            <select className="form-select" value={soilType} onChange={(e) => setSoilType(e.target.value)}>
-              <option value="Alluvial">Alluvial Soil (जलोढ़ मिट्टी)</option>
-              <option value="Loamy">Loamy Soil (दोमट मिट्टी)</option>
-              <option value="Black Cotton">Black Cotton Soil (काली मिट्टी)</option>
-              <option value="Sandy Loam">Sandy Loam (बलुई दोमट)</option>
-            </select>
-          </div>
-
-          <div className="form-group">
-            <label className="form-label">Irrigation System:</label>
-            <select className="form-select" value={irrigation} onChange={(e) => setIrrigation(e.target.value)}>
-              <option value="BOREWELL">Tubewell / Borewell (Assured)</option>
-              <option value="CANAL">Canal Water (Seasonal)</option>
-              <option value="DRIP">Drip / Micro-Irrigation</option>
-              <option value="RAIN_FED">Rainfed (Monsoon Dependent)</option>
-            </select>
-          </div>
-
-          <div className="form-group">
-            <label className="form-label">Preceding Harvested Crop:</label>
-            <select className="form-select" value={previousCrop} onChange={(e) => setPreviousCrop(e.target.value)}>
-              <option value="Wheat">Wheat (गेहूं)</option>
-              <option value="Mustard">Mustard (सरसों)</option>
-              <option value="Potato">Potato (आलू)</option>
-            </select>
-          </div>
-
-          <div style={{ marginTop: '1.25rem', padding: '0.85rem', background: 'rgba(16, 185, 129, 0.08)', borderRadius: 'var(--radius-sm)', border: '1px dashed var(--border-color)', fontSize: '0.825rem', color: 'var(--text-muted)' }}>
-            <span style={{ color: '#34d399', fontWeight: 600, display: 'block', marginBottom: '0.2rem' }}>💡 Soil Regeneration Strategy:</span>
-            Rotational pulses add atmospheric nitrogen to soil, reducing chemical fertilizer cost for the upcoming Kharif Paddy crop.
-          </div>
-        </div>
-
-        {/* AI Recommendations Output Cards */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <h3 style={{ fontSize: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <Award color="var(--accent-gold)" /> Recommended High-Value Rotational Crops ({filteredCrops.length} Matches)
-            </h3>
-            <span className="badge badge-success">AI Suitability Score Active</span>
-          </div>
-
-          {filteredCrops.map((crop, index) => {
-            const totalInvestment = Math.round(crop.investmentPerAcre * landSize);
-            const totalGross = Math.round(crop.grossRevenue * landSize);
-            const totalNet = Math.round(crop.netProfit * landSize);
-            const roiPercent = Math.round((totalNet / totalInvestment) * 100);
-
-            return (
-              <div key={crop.id} className="glass-card" style={{ border: index === 0 ? '2px solid #10b981' : '1px solid var(--border-color)', position: 'relative' }}>
-                
-                {index === 0 && (
-                  <div style={{ position: 'absolute', top: '-12px', right: '20px', background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', color: '#fff', fontSize: '0.75rem', fontWeight: 800, padding: '0.25rem 0.85rem', borderRadius: 'var(--radius-full)', textTransform: 'uppercase', boxShadow: '0 0 10px rgba(16,185,129,0.5)' }}>
-                    🏆 #1 Recommended High-Profit Crop
-                  </div>
-                )}
-
-                <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
-                  <div>
-                    <h4 style={{ fontSize: '1.3rem', color: '#ffffff', marginBottom: '0.35rem' }}>{crop.name}</h4>
-                    <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                      <Calendar size={15} color="var(--primary)" /> Maturity Window: <strong style={{ color: '#fff' }}>{crop.duration} Days</strong> | 
-                      Optimal Period: {crop.bestGapWindow}
-                    </p>
-                  </div>
-
-                  <div style={{ textAlign: 'right' }}>
-                    <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Projected Net Profit ({landSize} Acres):</span>
-                    <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#34d399', fontFamily: 'Outfit' }}>
-                      ₹{totalNet.toLocaleString()}
+                      <div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                          <h4 style={{ fontSize: '1.25rem', color: '#0f172a', margin: 0 }}>
+                            {rec.crop_name}
+                          </h4>
+                          {rec.scientific_name && (
+                            <span style={{ fontSize: '0.78rem', color: '#64748b', fontStyle: 'italic' }}>
+                              ({rec.scientific_name})
+                            </span>
+                          )}
+                        </div>
+                        <span style={{ fontSize: '0.8rem', color: '#475569' }}>
+                          Avadhi: <strong>{rec.duration_days}</strong> • Category: {rec.category} • Sinchai: {rec.water_requirement} Water
+                        </span>
+                      </div>
                     </div>
-                    <span className="badge badge-success" style={{ fontSize: '0.7rem' }}>Expected ROI: +{roiPercent}%</span>
+
+                    <div style={{ textAlign: 'right' }}>
+                      <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#059669' }}>
+                        {rec.score} <span style={{ fontSize: '0.8rem', color: '#64748b' }}>/ 100</span>
+                      </div>
+                      <button 
+                        onClick={() => setExpandedBreakdown(expandedBreakdown === idx ? null : idx)}
+                        style={{ background: 'transparent', border: 'none', color: '#0284c7', fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.2rem', marginTop: '0.2rem' }}
+                      >
+                        <span>Score Breakdown</span>
+                        {expandedBreakdown === idx ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Score Breakdown Toggle Panel */}
+                  {expandedBreakdown === idx && rec.score_breakdown && (
+                    <div style={{ 
+                      marginTop: '0.75rem', 
+                      background: '#ffffff', 
+                      border: '1px solid #cbd5e1', 
+                      borderRadius: 'var(--radius-sm)', 
+                      padding: '0.75rem',
+                      fontSize: '0.8rem',
+                      display: 'grid',
+                      gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))',
+                      gap: '0.5rem'
+                    }}>
+                      <div>Gap Fit: <strong>{rec.score_breakdown.gap_duration_fit} / 40</strong></div>
+                      <div>Compatibility: <strong>{rec.score_breakdown.crop_compatibility} / 20</strong></div>
+                      <div>Regional: <strong>{rec.score_breakdown.regional_suitability} / 15</strong></div>
+                      <div>Irrigation: <strong>{rec.score_breakdown.irrigation_suitability} / 10</strong></div>
+                      <div>Nutrient Rotation: <strong>{rec.score_breakdown.nutrient_rotation_benefit} / 15</strong></div>
+                    </div>
+                  )}
+
+                  {/* Reasons Section */}
+                  <div style={{ marginTop: '0.85rem' }}>
+                    <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#0f172a', display: 'block', marginBottom: '0.35rem' }}>
+                      {t('why_recommended')}
+                    </span>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+                      {(rec.reasons || []).map((r, rIdx) => (
+                        <div key={rIdx} style={{ fontSize: '0.825rem', color: '#334155', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                          <CheckCircle2 size={15} color="#16a34a" />
+                          <span>{r.replace(/^[✓\s]+/, '')}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Rotational Impact */}
+                  {rec.estimated_nutrient_impact && (
+                    <div style={{ marginTop: '0.75rem', padding: '0.65rem', background: '#ecfdf5', borderRadius: '6px', border: '1px solid #a7f3d0', fontSize: '0.8rem', color: '#065f46' }}>
+                      <strong>{t('rotational_benefit')} </strong>
+                      {rec.estimated_nutrient_impact}
+                    </div>
+                  )}
+
+                  {/* Economics & Source */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem', marginTop: '0.85rem', paddingTop: '0.75rem', borderTop: '1px solid #e2e8f0', fontSize: '0.8rem' }}>
+                    <div>
+                      <span style={{ color: '#64748b' }}>{t('expected_yield')} </span>
+                      <strong style={{ color: '#0f172a' }}>{rec.expected_yield || '4-5 qtl/acre'}</strong>
+                    </div>
+                    {rec.source_provenance && (
+                      <div style={{ color: '#059669', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                        <ShieldCheck size={15} />
+                        <span>{t('official_source')} <strong>{rec.source_provenance}</strong></span>
+                      </div>
+                    )}
                   </div>
                 </div>
+              ))}
 
-                {/* Metrics Breakdown Grid */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.75rem', background: 'rgba(6, 20, 13, 0.6)', padding: '0.85rem', borderRadius: 'var(--radius-sm)', marginBottom: '1rem', border: '1px solid var(--border-color)' }}>
-                  <div>
-                    <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block' }}>Estimated Cost</span>
-                    <strong style={{ fontSize: '0.95rem', color: '#f87171' }}>₹{totalInvestment.toLocaleString()}</strong>
-                  </div>
-                  <div>
-                    <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block' }}>Expected Yield</span>
-                    <strong style={{ fontSize: '0.95rem', color: '#fff' }}>{(crop.expectedYieldPerAcre * landSize).toFixed(1)} Quintals</strong>
-                  </div>
-                  <div>
-                    <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block' }}>Market MSP / Price</span>
-                    <strong style={{ fontSize: '0.95rem', color: '#fbbf24' }}>₹{crop.marketPricePerQuintal}/qnt</strong>
-                  </div>
-                  <div>
-                    <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block' }}>Risk Index</span>
-                    <strong style={{ fontSize: '0.95rem', color: crop.riskScore < 25 ? '#4ade80' : '#fbbf24' }}>{crop.riskScore}/100 (Optimal)</strong>
-                  </div>
-                </div>
-
-                {/* Nitrogen & Soil Benefits */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', color: '#4ade80', background: 'rgba(34, 197, 94, 0.12)', padding: '0.6rem 0.85rem', borderRadius: 'var(--radius-sm)' }}>
-                  <Leaf size={16} />
-                  <span><strong>Soil Health & Bio-Nutrient Impact:</strong> {crop.nitrogenFixation}</span>
-                </div>
-
+              {/* Scientific Disclaimer */}
+              <div style={{ fontSize: '0.75rem', color: '#64748b', textAlign: 'center', marginTop: '0.5rem' }}>
+                * {result.disclaimer || "Estimated nutrient impact is based on crop profile rotation models and is NOT a measured soil test."}
               </div>
-            );
-          })}
-        </div>
+            </div>
+          ) : (
+            /* ------------------------------------------------------------- NO SUITABLE CROP FALLBACK VIEW */
+            <div className="glass-card" style={{ background: '#fffbe6', border: '1px solid #ffe58f', textAlign: 'center', padding: '2rem 1.5rem' }}>
+              <AlertTriangle size={36} color="#d97706" style={{ margin: '0 auto 0.75rem auto' }} />
+              <h3 style={{ fontSize: '1.25rem', color: '#b45309', margin: '0 0 0.5rem 0' }}>
+                {t('no_suitable_crop_title')}
+              </h3>
+              <p style={{ fontSize: '0.9rem', color: '#78350f', maxWidth: '550px', margin: '0 auto 1.25rem auto' }}>
+                {t('no_suitable_crop_desc')} ({result.calculated_gap_days} {t('days')}).
+              </p>
 
-      </div>
+              {result.rejected_summary?.length > 0 && (
+                <div style={{ maxWidth: '500px', margin: '0 auto 1.25rem auto', textAlign: 'left', background: '#ffffff', padding: '0.85rem', borderRadius: 'var(--radius-sm)', border: '1px solid #fde68a', fontSize: '0.825rem' }}>
+                  <strong style={{ color: '#92400e', display: 'block', marginBottom: '0.4rem' }}>{t('rejection_reasons_title')}</strong>
+                  {result.rejected_summary.map((rej, rIdx) => (
+                    <div key={rIdx} style={{ color: '#78350f', marginBottom: '0.25rem' }}>
+                      • <strong>{rej.crop_name}:</strong> {rej.reason}
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <button 
+                onClick={() => setResult(null)}
+                className="btn btn-primary"
+              >
+                <RotateCcw size={16} />
+                <span>{t('try_again_cta')}</span>
+              </button>
+            </div>
+          )}
+
+        </div>
+      )}
+
     </div>
   );
 }

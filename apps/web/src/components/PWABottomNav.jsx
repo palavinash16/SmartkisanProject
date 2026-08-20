@@ -1,13 +1,13 @@
 ﻿import React from 'react';
-import { Home, Sprout, Mic, FileText, User, Sparkles } from 'lucide-react';
+import { Home, Sprout, Sparkles, Store, CloudSun, User } from 'lucide-react';
 
 export default function PWABottomNav({ activeTab, setActiveTab, onOpenProfile }) {
   const items = [
     { id: 'home', label: 'होम', icon: Home },
     { id: 'my-field', label: 'मेरा खेत', icon: Sprout },
-    { id: 'gap-crop', label: 'जायद फसल', icon: Sparkles, badge: 'लाभदायी' },
-    { id: 'voice-assistant', label: 'किसान वाणी', icon: Mic },
-    { id: 'scheme-finder', label: 'योजना मित्र', icon: FileText },
+    { id: 'gap-crop', label: 'गैप फसल', icon: Sparkles, badge: 'सक्रिय' },
+    { id: 'mandi-prices', label: 'मंडी भाव', icon: Store },
+    { id: 'weather-advisory', label: 'मौसम', icon: CloudSun },
     { id: 'profile', label: 'प्रोफाइल', icon: User },
   ];
 
@@ -18,9 +18,9 @@ export default function PWABottomNav({ activeTab, setActiveTab, onOpenProfile })
       left: 0,
       right: 0,
       zIndex: 1000,
-      background: '#0e2216',
-      borderTop: '1px solid rgba(34, 197, 94, 0.2)',
-      boxShadow: '0 -4px 20px rgba(0,0,0,0.35)',
+      background: '#ffffff',
+      borderTop: '1px solid #e2e8f0',
+      boxShadow: '0 -4px 20px rgba(0,0,0,0.06)',
       padding: '0.35rem 0.5rem'
     }}>
       <div style={{
@@ -53,7 +53,7 @@ export default function PWABottomNav({ activeTab, setActiveTab, onOpenProfile })
                 alignItems: 'center',
                 justifyContent: 'center',
                 gap: '0.2rem',
-                color: isActive ? '#34d399' : '#94a3b8',
+                color: isActive ? '#059669' : '#64748b',
                 cursor: 'pointer',
                 padding: '0.35rem 0.5rem',
                 minWidth: '54px',
@@ -68,10 +68,10 @@ export default function PWABottomNav({ activeTab, setActiveTab, onOpenProfile })
                 width: '32px',
                 height: '32px',
                 borderRadius: '50%',
-                background: isActive ? 'rgba(16, 185, 129, 0.18)' : 'transparent',
+                background: isActive ? '#ecfdf5' : 'transparent',
                 transition: 'all 0.2s ease'
               }}>
-                <Icon size={20} color={isActive ? '#34d399' : '#94a3b8'} />
+                <Icon size={19} color={isActive ? '#059669' : '#64748b'} />
                 {item.badge && (
                   <span style={{
                     position: 'absolute',
@@ -92,7 +92,7 @@ export default function PWABottomNav({ activeTab, setActiveTab, onOpenProfile })
               <span style={{
                 fontSize: '0.725rem',
                 fontWeight: isActive ? 700 : 500,
-                color: isActive ? '#34d399' : '#cbd5e1'
+                color: isActive ? '#059669' : '#475569'
               }}>
                 {item.label}
               </span>
