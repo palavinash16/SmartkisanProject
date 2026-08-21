@@ -20,7 +20,7 @@ describe('Phase 1F.5 Language Registry & Search', () => {
       expect(lang.code).toBeTruthy();
       expect(lang.englishName).toBeTruthy();
       expect(lang.nativeName).toBeTruthy();
-      expect(['SUPPORTED', 'PARTIAL']).toContain(lang.status);
+      expect(['SUPPORTED', 'ENGLISH_FALLBACK']).toContain(lang.status);
     });
   });
 

@@ -1,14 +1,17 @@
-﻿import React from 'react';
+import React from 'react';
 import { Home, Sprout, Sparkles, Store, CloudSun, User } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
 
 export default function PWABottomNav({ activeTab, setActiveTab, onOpenProfile }) {
+  const { t } = useLanguage();
+
   const items = [
-    { id: 'home', label: 'होम', icon: Home },
-    { id: 'my-field', label: 'मेरा खेत', icon: Sprout },
-    { id: 'gap-crop', label: 'गैप फसल', icon: Sparkles, badge: 'सक्रिय' },
-    { id: 'mandi-prices', label: 'मंडी भाव', icon: Store },
-    { id: 'weather-advisory', label: 'मौसम', icon: CloudSun },
-    { id: 'profile', label: 'प्रोफाइल', icon: User },
+    { id: 'home', label: t('nav_home'), icon: Home },
+    { id: 'my-field', label: t('nav_my_field'), icon: Sprout },
+    { id: 'gap-crop', label: t('nav_gap_crop'), icon: Sparkles, badge: t('nav_active') },
+    { id: 'mandi-prices', label: t('nav_mandi'), icon: Store },
+    { id: 'weather-advisory', label: t('nav_weather'), icon: CloudSun },
+    { id: 'profile', label: t('nav_profile'), icon: User },
   ];
 
   return (

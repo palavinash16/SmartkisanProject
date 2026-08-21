@@ -1,8 +1,8 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { STATES_AND_DISTRICTS } from '../data/mockData';
 import LandUnitInput from './LandUnitInput';
 import { useLanguage } from '../context/LanguageContext';
-import { SUPPORTED_LANGUAGES } from '../utils/translations';
+import { LANGUAGE_REGISTRY } from '../utils/languageRegistry';
 import { User, MapPin, Sprout, Globe, Check, ArrowRight, ShieldCheck } from 'lucide-react';
 
 export const DEFAULT_DEMO_PROFILE = {
@@ -43,8 +43,8 @@ export default function FarmerProfileSetup({ farmerProfile, onSaveProfile, onClo
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem', borderBottom: '1px solid #e2e8f0', paddingBottom: '0.85rem' }}>
         <div>
           <span className="badge badge-success" style={{ marginBottom: '0.25rem' }}>Kisan Profile Setup</span>
-          <h2 style={{ fontSize: '1.35rem', color: '#0f172a', margin: 0 }}>किसान प्रोफाइल और खेत विवरण</h2>
-          <p style={{ fontSize: '0.825rem', color: '#64748b', margin: '0.2rem 0 0 0' }}>अपनी भाषा, राज्य और खेत की सिंचाई सुविधा चुनें।</p>
+          <h2 style={{ fontSize: '1.35rem', color: '#0f172a', margin: 0 }}>{t('profile_title')}</h2>
+          <p style={{ fontSize: '0.825rem', color: '#64748b', margin: '0.2rem 0 0 0' }}>{t('profile_subtitle')}</p>
         </div>
         <div style={{ background: '#ecfdf5', padding: '0.65rem', borderRadius: '12px', color: '#059669' }}>
           <User size={24} />
@@ -56,8 +56,8 @@ export default function FarmerProfileSetup({ farmerProfile, onSaveProfile, onClo
           <div style={{ width: '56px', height: '56px', borderRadius: '50%', background: '#dcfce7', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1rem auto', color: '#16a34a' }}>
             <Check size={32} />
           </div>
-          <h3 style={{ fontSize: '1.2rem', color: '#0f172a' }}>प्रोफाइल सफलतापूर्वक सेव हो गई!</h3>
-          <p style={{ fontSize: '0.85rem', color: '#64748b' }}>आपकी जानकारी अपडेट कर दी गई है...</p>
+          <h3 style={{ fontSize: '1.2rem', color: '#0f172a' }}>{t('btn_save')} Successful!</h3>
+          <p style={{ fontSize: '0.85rem', color: '#64748b' }}>Updated...</p>
         </div>
       ) : (
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -72,15 +72,15 @@ export default function FarmerProfileSetup({ farmerProfile, onSaveProfile, onClo
                 value={formData.language}
                 onChange={(e) => setFormData((prev) => ({ ...prev, language: e.target.value }))}
               >
-                {SUPPORTED_LANGUAGES.map((l) => (
-                  <option key={l.code} value={l.code}>{l.label}</option>
+                {LANGUAGE_REGISTRY.map((l) => (
+                  <option key={l.code} value={l.code}>{l.nativeName} ({l.englishName})</option>
                 ))}
               </select>
             </div>
 
             {/* Farmer Name */}
             <div className="form-group">
-              <label className="form-label">किसान का नाम (Farmer Name):</label>
+              <label className="form-label">Farmer Name:</label>
               <input 
                 type="text"
                 className="form-input"
@@ -94,7 +94,7 @@ export default function FarmerProfileSetup({ farmerProfile, onSaveProfile, onClo
             
             {/* State */}
             <div className="form-group">
-              <label className="form-label">राज्य (State):</label>
+              <label className="form-label">{t('state_label')}:</label>
               <select 
                 className="form-select"
                 value={formData.state}
@@ -112,7 +112,7 @@ export default function FarmerProfileSetup({ farmerProfile, onSaveProfile, onClo
 
             {/* District */}
             <div className="form-group">
-              <label className="form-label">जिला (District):</label>
+              <label className="form-label">{t('district_label')}:</label>
               <select 
                 className="form-select"
                 value={formData.district}
@@ -135,11 +135,11 @@ export default function FarmerProfileSetup({ farmerProfile, onSaveProfile, onClo
                 value={formData.irrigation}
                 onChange={(e) => setFormData((prev) => ({ ...prev, irrigation: e.target.value }))}
               >
-                <option value="Tube well">Tube well (ट्यूबवेल)</option>
-                <option value="Borewell">Borewell (बोरवेल)</option>
-                <option value="Canal">Canal (नहर)</option>
-                <option value="Drip">Drip (ड्रिप सिंचाई)</option>
-                <option value="Rainfed">Rainfed (वर्षा आधारित)</option>
+                <option value="Tube well">Tube well</option>
+                <option value="Borewell">Borewell</option>
+                <option value="Canal">Canal</option>
+                <option value="Drip">Drip</option>
+                <option value="Rainfed">Rainfed</option>
               </select>
             </div>
 
@@ -164,12 +164,12 @@ export default function FarmerProfileSetup({ farmerProfile, onSaveProfile, onClo
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '0.5rem' }}>
             {onClose && (
               <button type="button" onClick={onClose} className="btn btn-outline">
-                {t('close')}
+                {t('btn_close')}
               </button>
             )}
             <button type="submit" className="btn btn-primary">
               <Check size={16} />
-              <span>{t('save')} Profile</span>
+              <span>{t('save_profile_btn')}</span>
             </button>
           </div>
 
