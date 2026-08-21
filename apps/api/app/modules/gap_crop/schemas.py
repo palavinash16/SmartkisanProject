@@ -75,6 +75,11 @@ class GapCropRecommendationItem(BaseModel):
     reasons: List[str] = Field(..., example=["✓ Optimal fit for 68-day window", "✓ Favorable cereal-legume rotation"])
     warnings: List[str] = Field(default_factory=list)
     source_provenance: str = Field("ICAR-IIPR Kanpur / UP Agri Dept Guidelines")
+    weather_risk: Optional[str] = Field("UNKNOWN", example="LOW", description="Forecast weather risk level (LOW, MODERATE, HIGH, UNKNOWN)")
+    weather_source: Optional[str] = Field(None, example="Open-Meteo", description="Weather data provider")
+    weather_is_stale: Optional[bool] = Field(False, example=False, description="Whether weather signal is cached/stale")
+    weather_location_resolution: Optional[str] = Field(None, example="GPS / Field Coordinates", description="Location resolution precision level")
+    weather_reason_code: Optional[str] = Field(None, example="NO_SIGNIFICANT_WEATHER_RISK_DETECTED", description="Structured weather suitability reason code")
 
 
 class InputSummary(BaseModel):

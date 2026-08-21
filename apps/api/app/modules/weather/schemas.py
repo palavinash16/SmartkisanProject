@@ -12,9 +12,12 @@ class WeatherCurrentResponse(BaseModel):
     district: str
     state: str
     temperature_c: float
+    apparent_temperature_c: float = 0.0
     rainfall_mm: float
     humidity_pct: float
     wind_kmh: float
+    wind_direction_deg: float = 0.0
+    weather_code: int = 0
     condition: str
     is_favorable_for_sowing: bool
 
@@ -27,6 +30,8 @@ class ForecastDayItem(BaseModel):
     rain_mm: float
     humidity_pct: float
     wind_kmh: float
+    precipitation_probability_max: float = 0.0
+    weather_code: int = 0
     condition: str
 
 
@@ -37,8 +42,13 @@ class WeatherForecastResponse(BaseModel):
 
 class AdvisoryRuleResult(BaseModel):
     rule_code: str
-    triggered: bool
-    action_type: str
+    action: str = ""
+    severity: str = "MEDIUM"
+    triggered: bool = False
+    action_type: str = ""
+    weather_source: str = "Open-Meteo"
+    agricultural_source: str = ""
+    decision_source: str = "SmartKisan Rule Engine"
     message_en: str
     message_hi: str
 
@@ -48,6 +58,15 @@ class WeatherAdvisoryResponse(BaseModel):
     rainfall_mm: float
     wind_kmh: float
     humidity_pct: float
+    summary_advisory_code: str = "NO_RELIABLE_ADVISORY"
     summary_advisory_en: str
     summary_advisory_hi: str
     active_rules: list[AdvisoryRuleResult]
+
+
+class WeatherMeta(BaseModel):
+    source: str = "Open-Meteo"
+    is_stale: bool = False
+    data_as_of: str | None = None
+    cached_at: str | None = None
+    location_resolution: str = "GPS / Field Coordinates"

@@ -505,6 +505,26 @@ export default function GapCropEngine({ farmerProfile }) {
                               ({rec.scientific_name})
                             </span>
                           )}
+
+                        {rec.weather_risk && (
+                          <div style={{ marginTop: '0.35rem', display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
+                            <span className="badge" style={{
+                              background: rec.weather_risk === 'HIGH' ? '#fef2f2' : rec.weather_risk === 'MODERATE' ? '#fef3c7' : '#f0fdf4',
+                              border: rec.weather_risk === 'HIGH' ? '1px solid #fca5a5' : rec.weather_risk === 'MODERATE' ? '1px solid #fde68a' : '1px solid #bbf7d0',
+                              color: rec.weather_risk === 'HIGH' ? '#991b1b' : rec.weather_risk === 'MODERATE' ? '#b45309' : '#16a34a',
+                              fontSize: '0.72rem',
+                              padding: '0.15rem 0.5rem',
+                              borderRadius: '4px'
+                            }}>
+                              🌤️ {t('weather_risk_label')}: {t('weather_risk_' + (rec.weather_risk || 'unknown').toLowerCase())}
+                            </span>
+                            {rec.weather_source && (
+                              <span style={{ fontSize: '0.72rem', color: '#64748b' }}>
+                                ({t('source_label')}: {rec.weather_source}{rec.weather_is_stale ? ' Cached' : ''})
+                              </span>
+                            )}
+                          </div>
+                        )}
                         </div>
                         <span style={{ fontSize: '0.8rem', color: '#475569' }}>
                           Avadhi: <strong>{rec.duration_days}</strong> • Category: {rec.category} • Sinchai: {rec.water_requirement} Water
